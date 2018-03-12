@@ -1,0 +1,64 @@
+apply plugin: 'com.android.application'
+
+//*** If SearchString1 or 2 are blank, the default google search will be used, so you can add just empty strings
+
+def SearchString1
+if (project.hasProperty('MySearchString1')) {
+    SearchString1 = MySearchString1
+} else {
+    SearchString1 = '"' + 'http://www.google.ru/search?q=' +'"'
+}
+
+def SearchString2
+if (project.hasProperty('MySearchString2')) {
+    SearchString2 = MySearchString2
+} else {
+    SearchString2 = '"' + ' movie' +'"'
+}
+
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "com.amargodigits.movies"
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//*** MoviesDbApikey is required.
+// To fetch popular movies, this app use the API from themoviedb.org.
+//If you don’t already have an account, you will need to create one in order to request an API Key.
+//        You will need to provide some personal information to complete the request.
+//Once you submit your request, you should receive your key via email shortly after.
+// Add that key to gradle.properties, it should look like:
+// MoviesDbApikey="----- your key goes here ---- "
+        buildConfigField("String", "MOVIESDB_API_KEY", MoviesDbApikey)
+        buildConfigField("String", "SEARCH_STRING_1", SearchString1)
+        buildConfigField("String", "SEARCH_STRING_2", SearchString2)
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:recyclerview-v7:26.1.0'
+    compile 'com.jakewharton:butterknife:8.6.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
+}
+
+repositories {
+    mavenCentral()
+}

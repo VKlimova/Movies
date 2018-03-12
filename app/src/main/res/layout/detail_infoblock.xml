@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp">
+    <TextView
+        android:id="@+id/originalTitle"
+        style="@style/DetailText"
+        android:textAllCaps="true"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/englishTitle"
+        style="@style/DetailText" />
+    <TextView
+        android:id="@+id/releaseDate"
+        style="@style/DetailText"
+        android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/popularity"
+        style="@style/DetailText" />
+
+    <TextView
+        android:id="@+id/videosTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp" />
+</LinearLayout>
