@@ -1,7 +1,9 @@
 package com.amargodigits.movies;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -10,17 +12,23 @@ import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amargodigits.movies.data.MovieDbHelper;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
 import com.amargodigits.movies.utils.NetworkUtils;
 import com.squareup.picasso.Picasso;
+
+import java.util.zip.Inflater;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,6 +36,7 @@ import butterknife.ButterKnife;
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.mSharedPref;
 import static com.amargodigits.movies.MainActivity.movieList;
+import static com.amargodigits.movies.data.MovieContract.MovieEntry.*;
 import static com.amargodigits.movies.utils.NetworkUtils.buildYoutubeUrl;
 import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
 
@@ -36,7 +45,11 @@ public class DetailActivity extends AppCompatActivity {
     public static TextView videosTxt;
     public static TextView reviewsTxt;
     public static Context mContext;
-    Movie mMovie;
+    SQLiteDatabase mDb;
+
+    int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
+    final Movie mMovie = movieList[moviePosition];
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,13 +58,20 @@ public class DetailActivity extends AppCompatActivity {
         mContext = getApplicationContext();
         ButterKnife.bind(this);
         ImageView image_iv = findViewById(R.id.image_iv);
-        int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
-        Movie mMovie = movieList[moviePosition];
+//        int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
+//      final Movie mMovie = movieList[moviePosition];
         Log.i(LOG_TAG, "moviePosition= " + moviePosition + " mMovie=" + mMovie.getOriginalTitle());
         populateUI(mMovie);
-
-
-
+try {
+    // Create a DB helper (this will create the DB if run for the first time)
+    MovieDbHelper dbHelper = new MovieDbHelper(this);
+    // Keep a reference to the mDb until paused or killed. Get a writable database
+    // because you will be adding restaurant customers
+    mDb = dbHelper.getWritableDatabase();
+}
+catch (Exception e) {
+    Log.i(LOG_TAG, "DetailActivity Exception " + e.toString());
+}
         reviewsTxt = findViewById(R.id.reviewsTxt);
         videosTxt = findViewById(R.id.videosTxt);
 
@@ -159,14 +179,7 @@ public class DetailActivity extends AppCompatActivity {
         if (reviews == null) {
             reviewsTxt.append("No reviews yet");
         } else {
-
             reviewsTxt.append(reviews.length +  " <Show reviews>\n\n");
-//            for (Review review : reviews) {
-//                reviewsTxt.append("===\n");
-//                reviewsTxt.append(review.getAuthor() + "\n");
-//                reviewsTxt.append("---\n");
-//                reviewsTxt.append(review.getContent() + "\n\n");
-//            }
         }
         reviewsTxt.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -218,6 +231,7 @@ public class DetailActivity extends AppCompatActivity {
         finish();
         Toast.makeText(this, R.string.error_message, Toast.LENGTH_SHORT).show();
     }
+
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save the user's current game state
@@ -278,4 +292,38 @@ public class DetailActivity extends AppCompatActivity {
         textView.setText( spanText, TextView.BufferType.SPANNABLE);
 
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.detail,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        int id = item.getItemId();
+        if (id==R.id.like)
+        try{
+//            Toast.makeText(this, "Saving ..."  + mMovie.getOriginalTitle()  , Toast.LENGTH_LONG).show();
+            likeMovie(mMovie);
+        }catch (Exception e){
+            Log.i(LOG_TAG, "like Exception: "+ e.toString());
+        }return true;
+    }
+
+   private long likeMovie(Movie movie){
+       ContentValues cv =  new ContentValues();
+
+
+       cv.put(COLUMN_ENGLISH_TITLE,movie.getEnglishTitle());
+       cv.put(COLUMN_ORIGINAL_TITLE, movie.getOriginalTitle());
+       cv.put(COLUMN_OVERVIEW, movie.getOverview());
+       cv.put(COLUMN_POPULARITY, movie.getPopularity());
+       cv.put(COLUMN_POSTER_PATH, movie.getPosterPath());
+       cv.put(COLUMN_RELEASE_DATE, movie.getReleaseDate());
+       cv.put(COLUMN_FILM_ID, movie.getId());
+       Toast.makeText(this, "Saving: " + cv.getAsString(COLUMN_ORIGINAL_TITLE) , Toast.LENGTH_LONG).show();
+       return mDb.insert(TABLE_NAME, null, cv);
+   };
 }

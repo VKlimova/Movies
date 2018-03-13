@@ -1,6 +1,7 @@
 package com.amargodigits.movies.utils;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -12,6 +13,7 @@ import com.amargodigits.movies.BuildConfig;
 import com.amargodigits.movies.DetailActivity;
 import com.amargodigits.movies.MainActivity;
 import com.amargodigits.movies.R;
+import com.amargodigits.movies.data.MovieDbHelper;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
 
@@ -22,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
+import static com.amargodigits.movies.data.MovieDbHelper.makeMovieArrayFromSQLite;
 
 /**
  * This module was inspired by NetworkUtils from Sunshine Udacity project
@@ -162,32 +165,45 @@ public final class NetworkUtils {
         @Override
         protected Integer doInBackground(String... params) {
             if (params.length == 0) {
-                return null;
+                return 0;
             }
-            if (isOnline(mContext)) {
-                try {
-                    URL scheduleRequestUrl = NetworkUtils.buildUrl(params[0]);
-                    Log.i(LOG_TAG, "20 movies RequestUrl = " + scheduleRequestUrl.toString());
-                    String[] moviesArr;
-                    String moviesResponse = NetworkUtils
-                            .getResponseFromHttpUrl(scheduleRequestUrl);
-                    int jsonStart = moviesResponse.indexOf("(") + 1;
-                    String jsonMoviesResponse = moviesResponse.substring(jsonStart, moviesResponse.length() - 1);
-                    return JsonUtils.getMovieListStringsFromJson(jsonMoviesResponse);
-                } catch (Exception e) {
-                    Log.i(LOG_TAG, R.string.error_message + e.toString());
-                    e.printStackTrace();
-                }
+            Log.i(LOG_TAG, "List of movies selected: " + params[0].toString().toUpperCase());
+            if (params[0]=="liked") { // Liked movies to be displayed
 
-            } else {
-                Toast.makeText(mContext, R.string.no_data, Toast.LENGTH_LONG).show();
+                SQLiteDatabase mDb;
+                // Create a DB helper (this will create the DB if run for the first time)
+                MovieDbHelper dbHelper = new MovieDbHelper(mContext);
+                // Keep a reference to the mDb until paused or killed. Get a writable database
+                // because you will be adding restaurant customers
+                mDb = dbHelper.getWritableDatabase();
+                return makeMovieArrayFromSQLite(mDb, "");
+
+            } else { // Popular or top-rated movies
+                if (isOnline(mContext)) {
+                    try {
+                        URL scheduleRequestUrl = NetworkUtils.buildUrl(params[0]);
+                        Log.i(LOG_TAG, "20 movies RequestUrl = " + scheduleRequestUrl.toString());
+                        String moviesResponse = NetworkUtils
+                                .getResponseFromHttpUrl(scheduleRequestUrl);
+                        int jsonStart = moviesResponse.indexOf("(") + 1;
+                        String jsonMoviesResponse = moviesResponse.substring(jsonStart, moviesResponse.length() - 1);
+                        return JsonUtils.getMovieListStringsFromJson(jsonMoviesResponse);
+                    } catch (Exception e) {
+                        Log.i(LOG_TAG, R.string.error_message + e.toString());
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    Toast.makeText(mContext, R.string.no_data, Toast.LENGTH_LONG).show();
+                }
             }
-            return null;
+            return 0;
         }
 
         @Override
         protected void onPostExecute(Integer result) {
             super.onPostExecute(result);
+            Log.i(LOG_TAG, "LoadDataTask onPostExecute get result =" + result.toString());
             if (result > 0) {
                 MainActivity.doRecView(mContext);
             } else {

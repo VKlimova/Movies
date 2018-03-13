@@ -3,6 +3,8 @@ package com.amargodigits.movies;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     public static TextView mTopratedItem;
     public String sortOrder;
     public static SharedPreferences mSharedPref;
+    Menu mMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,12 +40,15 @@ public class MainActivity extends AppCompatActivity {
         mTopratedItem =  findViewById(R.id.sort_toprated);
         mSharedPref = getPreferences(Context.MODE_PRIVATE);
         sortOrder = mSharedPref.getString("SORT", "popular");
+        if (!((sortOrder=="liked")||(sortOrder=="top_rated")||(sortOrder=="popular"))){
+            sortOrder="top_rated";
+        }
         if (isOnline(getApplicationContext())) {
             try {
                 LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
                 mAsyncTasc.execute(sortOrder);
             } catch (Exception e) {
-                Log.i(LOG_TAG, e.toString());
+                Log.i(LOG_TAG, "onCreateException " + e.toString());
             }
         } else {
             Toast.makeText(this, "Network connection required", Toast.LENGTH_LONG).show();
@@ -56,14 +62,14 @@ public class MainActivity extends AppCompatActivity {
         try {
             mRecyclerView.setLayoutManager(mLayoutManager);
         } catch (Exception e) {
-            Log.i("WD", "Exception " + e.toString());
+            Log.i("WD", "doRecView1 Exception " + e.toString());
         }
         mRecyclerView.setAdapter(mAdapter);
-        try {
-            Log.i(LOG_TAG, "popularItem.getText() = " + mPopularItem.getText().toString());
-        } catch (Exception e) {
-            Log.i(LOG_TAG, e.toString());
-        }
+//        try {
+//            Log.i(LOG_TAG, "popularItem.getText() = " + mPopularItem.getText().toString());
+//        } catch (Exception e) {
+//            Log.i(LOG_TAG, "doRecView2 Exception " +e.toString());
+//        }
     }
 
 
@@ -80,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
+        mMenu = menu;
         sortOrder = mSharedPref.getString("SORT", "popular");
         switch (sortOrder) {
             case "popular": {
@@ -88,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     onOptionsItemSelected(topitem);
                 } catch (Exception e) {
-                    Log.i(LOG_TAG, "Exception " + e.toString());
+                    Log.i(LOG_TAG, "onCreateOptionsMenu Exception " + e.toString());
                 }
                 break;
             }
@@ -98,7 +105,17 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     onOptionsItemSelected(topitem);
                 } catch (Exception e) {
-                    Log.i(LOG_TAG, "Exception " + e.toString());
+                    Log.i(LOG_TAG, "onCreateOptionsMenu Exception " + e.toString());
+                }
+                break;
+            }
+            case "liked": {
+                MenuItem topitem = menu.getItem(2);
+                topitem.setTitle("> Liked <");
+                try {
+                    onOptionsItemSelected(topitem);
+                } catch (Exception e) {
+                    Log.i(LOG_TAG, "onCreateOptionsMenu Exception " + e.toString());
                 }
                 break;
             }
@@ -120,6 +137,13 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = mSharedPref.edit();
         TextView popularItem = findViewById(R.id.sort_popular);
         TextView topratedItem = findViewById(R.id.sort_toprated);
+        TextView likedItem = findViewById(R.id.liked);
+
+        Drawable drawable = mMenu.findItem(R.id.liked).getIcon();
+        if (drawable != null) {
+            drawable.mutate();
+        }
+
         if (id == R.id.sort_popular) {
             editor.putString("SORT", "popular");
             editor.apply();
@@ -127,20 +151,35 @@ public class MainActivity extends AppCompatActivity {
             popularItem.setTextColor(Color.YELLOW);
             topratedItem.setText(R.string.menu_top_rated);
             topratedItem.setTextColor(Color.GRAY);
+            drawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
             LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
             mAsyncTasc.execute("popular");
             return true;
         }
         if (id == R.id.sort_toprated) {
-
             editor.putString("SORT", "top_rated");
             editor.commit();
             popularItem.setText(R.string.menu_popular);
             popularItem.setTextColor(Color.GRAY);
             topratedItem.setText(R.string.menu_top_rated_selected);
             topratedItem.setTextColor(Color.YELLOW);
+            drawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
             LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
             mAsyncTasc.execute("top_rated");
+            return true;
+        }
+
+        if (id==R.id.liked){
+            editor.putString("SORT", "liked");
+            editor.commit();
+            popularItem.setText(R.string.menu_popular);
+            popularItem.setTextColor(Color.GRAY);
+            topratedItem.setText(R.string.menu_top_rated_selected);
+            topratedItem.setTextColor(Color.GRAY);
+            likedItem.setTextColor(Color.YELLOW);
+            drawable.setColorFilter(Color.YELLOW, PorterDuff.Mode.SRC_ATOP);
+            LoadDataTask mAsyncTask = new LoadDataTask(getApplicationContext());
+            mAsyncTask.execute("liked");
             return true;
         }
         return super.onOptionsItemSelected(item);

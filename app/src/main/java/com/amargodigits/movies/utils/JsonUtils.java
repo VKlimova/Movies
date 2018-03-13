@@ -19,7 +19,7 @@ import static com.amargodigits.movies.MainActivity.movieList;
  */
 
 public class JsonUtils {
-    /** takes as the input raw Json string and returns the string array
+    /** takes as the input raw Json string, fills in the movieList[] array, and returns the length of the array
      * @param rawJsonStr - raw string with JSON data
      * @return the number of string converted to movieList array from JSON data
      */
@@ -40,7 +40,6 @@ public class JsonUtils {
                     movieObj.getString("release_date"),
                     movieObj.getInt("id")
             );
-//            Log.i(LOG_TAG, "Movie " + movieList[i].toString());
         }
        return movieList.length;
     }
@@ -64,33 +63,19 @@ public class JsonUtils {
                     reviewObj.getString("author"),
                     reviewObj.getString("content")
             );
-   //         Log.i(LOG_TAG, "reviewList=" + reviewList[i].getAuthor());
         }
-
         return reviewList;
     }
-
     /** takes as the input raw Json string and returns the array
      * @param rawJsonStr - raw string with JSON data
      * @return the array of video strings from JSON data
      */
-
-    // {"id":"571cb2c0c3a36843150006ed",
-    // "iso_639_1":"en",
-    // "iso_3166_1":"US",
-    // "key":"zQ2XkyDTW34",
-    // "name":"Have a Donut",
-    // "site":"YouTube",
-    // "size":1080,
-    // "type":"Clip"}
     public static Video[] getVideoListStringsFromJson(String rawJsonStr)
             throws JSONException {
         Video[] videoList;
-
         JSONObject rawJson = new JSONObject(rawJsonStr);
         JSONArray videoJsonArr = rawJson.getJSONArray("results");
         videoList = new Video[videoJsonArr.length()];
-
         for (int i = 0; (i < videoJsonArr.length()); i++) {
             /* Get the JSON object representing the video */
             JSONObject videoObj = videoJsonArr.getJSONObject(i);
@@ -99,9 +84,7 @@ public class JsonUtils {
                     videoObj.getString("name"),
                     videoObj.getString("site")
             );
-//            Log.i(LOG_TAG, "reviewList=" + videoList[i].getName());
         }
-
         return videoList;
     }
 }
