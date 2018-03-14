@@ -1,10 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.amargodigits.movies.MainActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize" />
+<ScrollView
     android:id="@+id/mainScroll"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    tools:context="com.amargodigits.movies.MainActivity">
+    >
 <LinearLayout
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -52,3 +65,5 @@
         android:padding="10dp" />
 </LinearLayout>
 </ScrollView>
+    </android.support.design.widget.AppBarLayout>
+</LinearLayout>
