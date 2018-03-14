@@ -66,9 +66,7 @@ public class DetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.i(LOG_TAG, "DetailActivity onCreate Exception1 :" + e.toString());
         }
-
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-
         setSupportActionBar(toolbar);
 //        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 //        getSupportActionBar().setHomeButtonEnabled(true);
@@ -403,5 +401,5 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     ;
-
+//TODO : Кнопку Share
 }

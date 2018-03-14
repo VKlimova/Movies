@@ -6,14 +6,16 @@
     tools:context="com.example.android.sunshine.DetailActivity">
     <item
         android:id="@+id/sort_popular"
+        android:icon="@android:drawable/ic_menu_myplaces"
         android:title="@string/sort_popular"
         app:showAsAction="always" />
     <item
         android:id="@+id/sort_toprated"
+        android:icon="@android:drawable/ic_input_get"
         android:title="@string/sort_toprated"
         app:showAsAction="always" />
     <item
-        android:id="@+id/liked"
+        android:id="@+id/sort_liked"
         android:title="Liked"
         android:icon="@android:drawable/btn_star_big_off"
         app:showAsAction="always" />

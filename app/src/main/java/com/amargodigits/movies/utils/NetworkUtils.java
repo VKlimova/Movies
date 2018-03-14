@@ -153,6 +153,7 @@ public final class NetworkUtils {
 
     public static class LoadDataTask extends AsyncTask<String, Void, Integer> {
         Context mContext;
+        String mSortOrder;
         public LoadDataTask(Context context) {
             mContext = context;
         }
@@ -164,9 +165,11 @@ public final class NetworkUtils {
          */
         @Override
         protected Integer doInBackground(String... params) {
+
             if (params.length == 0) {
                 return 0;
             }
+            mSortOrder = params[0];
             Log.i(LOG_TAG, "List of movies selected: " + params[0].toString().toUpperCase());
             if (params[0]=="liked") { // Liked movies to be displayed
 
@@ -199,13 +202,16 @@ public final class NetworkUtils {
             }
             return 0;
         }
-
+        /**
+         * This method executes after
+         * loading movies list
+         */
         @Override
         protected void onPostExecute(Integer result) {
             super.onPostExecute(result);
             Log.i(LOG_TAG, "LoadDataTask onPostExecute get result =" + result.toString());
             if (result > 0) {
-                MainActivity.doRecView(mContext);
+                MainActivity.doRecView(mContext, mSortOrder);
             } else {
                 Toast.makeText(mContext, R.string.no_data, Toast.LENGTH_LONG).show();
             }
