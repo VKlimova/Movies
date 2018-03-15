@@ -148,7 +148,7 @@ public final class NetworkUtils {
 
     /**
      * This method creates AsyncTask to make a Network request in background
-     * To load movies list to movieList global variable
+     * To load movies list to movieList array
      */
 
     public static class LoadDataTask extends AsyncTask<String, Void, Integer> {
@@ -171,8 +171,7 @@ public final class NetworkUtils {
             }
             mSortOrder = params[0];
             Log.i(LOG_TAG, "List of movies selected: " + params[0].toString().toUpperCase());
-            if (params[0]=="liked") { // Liked movies to be displayed
-
+            if (params[0]=="liked") { // Liked movies are taken from SQLite database on the phone
                 SQLiteDatabase mDb;
                 // Create a DB helper (this will create the DB if run for the first time)
                 MovieDbHelper dbHelper = new MovieDbHelper(mContext);

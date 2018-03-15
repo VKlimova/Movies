@@ -28,8 +28,8 @@ public class MainActivity extends AppCompatActivity {
     public static String LOG_TAG = "Movies Log";
     public static Movie[] movieList;
     public static RecyclerView mRecyclerView;
-    public static TextView mPopularItem;
-    public static TextView mTopratedItem;
+    //    public static TextView mPopularItem;
+//    public static TextView mTopratedItem;
     public String sortOrder;
     public static SharedPreferences mSharedPref;
     static Toolbar mainToolbar;
@@ -40,23 +40,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mRecyclerView = findViewById(R.id.movie_rv);
-        mPopularItem = findViewById(R.id.sort_popular);
-        mTopratedItem = findViewById(R.id.sort_toprated);
         mSharedPref = getPreferences(Context.MODE_PRIVATE);
         sortOrder = mSharedPref.getString("SORT", "popular");
         Log.i(LOG_TAG, "MainActivity onCreate sortOrder = " + sortOrder);
-        if (!((sortOrder.contains("liked")) || (sortOrder == "top_rated") || (sortOrder == "popular"))) {
+        if (!( sortOrder.contains("liked") || sortOrder.contains("top_rated") || sortOrder.contains("popular") )) {
             sortOrder = "top_rated";
         }
         mainToolbar = (Toolbar) findViewById(R.id.mainToolbar);
-        //
-        mainToolbar.setTitle(sortOrder);
+        mainToolbar.setTitle(makeTitle(sortOrder));
         setSupportActionBar(mainToolbar);
 
 
         if (sortOrder.contains("liked")) {
-            LoadDataTask mAsyncTask = new LoadDataTask(getApplicationContext());
-            mAsyncTask.execute("liked");
+            LoadDataTask mLikedAsyncTask = new LoadDataTask(getApplicationContext());
+            mLikedAsyncTask.execute("liked");
         } else {
             if (isOnline(getApplicationContext())) {
                 try {
@@ -76,17 +73,13 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setHasFixedSize(true);
         GridLayoutManager mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
         try {
+            mainToolbar.setTitle(makeTitle(sortOrder));
             mRecyclerView.setLayoutManager(mLayoutManager);
+            mRecyclerView.setAdapter(mAdapter);
         } catch (Exception e) {
             Log.i("WD", "doRecView1 Exception " + e.toString());
         }
-        mRecyclerView.setAdapter(mAdapter);
-        mainToolbar.setTitle(sortOrder);
-//        try {
-//            Log.i(LOG_TAG, "popularItem.getText() = " + mPopularItem.getText().toString());
-//        } catch (Exception e) {
-//            Log.i(LOG_TAG, "doRecView2 Exception " +e.toString());
-//        }
+
     }
 
 
@@ -110,101 +103,38 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.i(LOG_TAG, "MainActivity onCreateOptionsMenu colorMenu Exception " + e.toString());
         }
-
-//        switch (sortOrder) {
-//            case "popular": {
-//                MenuItem topitem = menu.getItem(0);
-//                topitem.setTitle("> Popular <");
-//                try {
-//                    onOptionsItemSelected(topitem);
-//                } catch (Exception e) {
-//                    Log.i(LOG_TAG, "onCreateOptionsMenu Exception " + e.toString());
-//                }
-//                break;
-//            }
-//            case "top_rated": {
-//                MenuItem topitem = menu.getItem(1);
-//                topitem.setTitle("> Top rated <");
-//                try {
-//                    onOptionsItemSelected(topitem);
-//                } catch (Exception e) {
-//                    Log.i(LOG_TAG, "onCreateOptionsMenu Exception " + e.toString());
-//                }
-//                break;
-//            }
-//            case "liked": {
-//                MenuItem topitem = menu.getItem(2);
-//                topitem.setTitle("> Liked <");
-//                try {
-//                    onOptionsItemSelected(topitem);
-//                } catch (Exception e) {
-//                    Log.i(LOG_TAG, "onCreateOptionsMenu Exception " + e.toString());
-//                }
-//                break;
-//            }
-//        }
         return true;
     }
 
     public void colorMenu(String sortOrder) {
-
-        mSharedPref = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = mSharedPref.edit();
-////        TextView popularItem = findViewById(R.id.sort_popular);
-//        TextView topratedItem = findViewById(R.id.sort_toprated);
-//        TextView likedItem = findViewById(R.id.sort_liked);
+//        mSharedPref = getPreferences(Context.MODE_PRIVATE);
+//        SharedPreferences.Editor editor = mSharedPref.edit();
+//        editor.putString("SORT", sortOrder);
+//        editor.apply();
         Drawable likedDrawable = mMenu.findItem(R.id.sort_liked).getIcon();
         Drawable popularDrawable = mMenu.findItem(R.id.sort_popular).getIcon();
         Drawable top_ratedDrawable = mMenu.findItem(R.id.sort_toprated).getIcon();
-
         switch (sortOrder) {
             case "popular": {
-                editor.putString("SORT", "popular");
-                editor.apply();
-//                popularItem.setText(R.string.menu_popular);
-//                topratedItem.setText("");
-//                likedItem.setText("");
-//                popularItem.setTextColor(Color.YELLOW);
-//                topratedItem.setTextColor(Color.GRAY);
-//                likedItem.setTextColor(Color.GRAY);
                 popularDrawable.setColorFilter(Color.YELLOW, PorterDuff.Mode.SRC_ATOP);
                 top_ratedDrawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
                 likedDrawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
                 break;
             }
             case "top_rated": {
-                editor.putString("SORT", "top_rated");
-                editor.commit();
-//                topratedItem.setText(R.string.menu_top_rated);
-//                popularItem.setText("");
-//                likedItem.setText("");
-//                topratedItem.setTextColor(Color.YELLOW);
                 popularDrawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
                 top_ratedDrawable.setColorFilter(Color.YELLOW, PorterDuff.Mode.SRC_ATOP);
                 likedDrawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
-                LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                mAsyncTasc.execute("top_rated");
                 break;
             }
-
             case "liked": {
-                editor.putString("SORT", "liked");
-                editor.commit();
-//                popularItem.setText("");
-//                topratedItem.setText("");
-//                likedItem.setText("liked");
-//                likedItem.setTextColor(Color.YELLOW);
                 popularDrawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
                 top_ratedDrawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
                 likedDrawable.setColorFilter(Color.YELLOW, PorterDuff.Mode.SRC_ATOP);
-                LoadDataTask mAsyncTask = new LoadDataTask(getApplicationContext());
-                mAsyncTask.execute("liked");
                 break;
             }
         }
-
     }
-
 
     /**
      * Callback invoked when a menu item was selected from this Activity's menu.
@@ -217,57 +147,39 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         mSharedPref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = mSharedPref.edit();
-//        TextView popularItem = findViewById(R.id.sort_popular);
-//        TextView topratedItem = findViewById(R.id.sort_toprated);
-//        TextView likedItem = findViewById(R.id.sort_liked);
+        switch (id) {
+            case R.id.sort_popular: {
+                colorMenu("popular");
+                editor.putString("SORT", "popular");
+                editor.apply();
+                LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
+                mAsyncTasc.execute("popular");
+                return true;
+            }
+            case R.id.sort_toprated: {
+                colorMenu("top_rated");
+                editor.putString("SORT", "top_rated");
+                editor.apply();
+                LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
+                mAsyncTasc.execute("top_rated");
+                return true;
+            }
+            case R.id.sort_liked: {
+                colorMenu("liked");
+                editor.putString("SORT", "liked");
+                editor.apply();
+                LoadDataTask mAsyncTask = new LoadDataTask(getApplicationContext());
+                mAsyncTask.execute("liked");
+                return true;
+            }
 
-//        Drawable drawable = mMenu.findItem(R.id.sort_liked).getIcon();
-//        if (drawable != null) {
-//            drawable.mutate();
-//        }
-
-
-        if (id == R.id.sort_popular) {
-            colorMenu("popular");
-            editor.putString("SORT", "popular");
-            editor.apply();
-//            popularItem.setText(R.string.menu_popular_selected);
-//            popularItem.setTextColor(Color.YELLOW);
-//            topratedItem.setText(R.string.menu_top_rated);
-//            topratedItem.setTextColor(Color.GRAY);
-//            drawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
-            LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-            mAsyncTasc.execute("popular");
-            return true;
-        }
-        if (id == R.id.sort_toprated) {
-            colorMenu("top_rated");
-            editor.putString("SORT", "top_rated");
-            editor.commit();
-//            popularItem.setText(R.string.menu_popular);
-//            popularItem.setTextColor(Color.GRAY);
-//            topratedItem.setText(R.string.menu_top_rated_selected);
-//            topratedItem.setTextColor(Color.YELLOW);
-//            drawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
-            LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-            mAsyncTasc.execute("top_rated");
-            return true;
-        }
-
-        if (id == R.id.sort_liked) {
-            colorMenu("liked");
-            editor.putString("SORT", "liked");
-            editor.commit();
-//            popularItem.setText(R.string.menu_popular);
-//            popularItem.setTextColor(Color.GRAY);
-//            topratedItem.setText(R.string.menu_top_rated_selected);
-//            topratedItem.setTextColor(Color.GRAY);
-//            likedItem.setTextColor(Color.YELLOW);
-//            drawable.setColorFilter(Color.YELLOW, PorterDuff.Mode.SRC_ATOP);
-            LoadDataTask mAsyncTask = new LoadDataTask(getApplicationContext());
-            mAsyncTask.execute("liked");
-            return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private static String makeTitle(String sortOrder) {
+        sortOrder = sortOrder.replace("_", " ");
+        return sortOrder.substring(0, 1).toUpperCase() + sortOrder.substring(1) + " movies";
+    }
+
 }

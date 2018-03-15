@@ -401,5 +401,11 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     ;
-//TODO : Кнопку Share
 }
+
+// TODO : Кнопку Share
+// TODO : Save to Google Drive
+// TODO : hide unliked from list or mark them somehow
+// TODO : landscape layout poster shrink :)
+// TODO : endless scroll
+// TODO : Preferencies to set search strings and share strings
