@@ -16,6 +16,9 @@ import com.amargodigits.movies.DetailActivity;
 import com.amargodigits.movies.R;
 import com.amargodigits.movies.model.Movie;
 import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
+
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.mSharedPref;
 
@@ -25,7 +28,7 @@ import static com.amargodigits.movies.MainActivity.mSharedPref;
  * Includes ViewHolder and Grid Item count function.
  */
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
-    private Movie[] mDataset;
+    private ArrayList <Movie> mDataset;
     public  Context mContext;
     // Provide a reference to the views for each data item
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -36,7 +39,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         }
     }
     // Provide a suitable constructor (depends on the kind of dataset)
-    public MovieAdapter(Context myContext, Movie[] myDataset) {
+    public MovieAdapter(Context myContext, ArrayList <Movie> myDataset) {
         mDataset = myDataset;
         mContext = myContext;
     }
@@ -53,7 +56,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        holder.mImage.setContentDescription(mDataset[holder.getAdapterPosition()].getOriginalTitle());
+        holder.mImage.setContentDescription(mDataset.get(holder.getAdapterPosition()).getOriginalTitle());
         holder.mImage.setOnClickListener(new AdapterView.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -75,7 +78,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
                 .appendPath("t")
                 .appendPath("p")
                 .appendPath("w185")
-                .appendPath(mDataset[holder.getAdapterPosition()].getPosterPath());
+                .appendPath(mDataset.get(holder.getAdapterPosition()).getPosterPath());
 
         Picasso.with(mContext)
                 .load(builder.build().toString())
@@ -89,7 +92,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return mDataset.length;
+        return mDataset.size();
     }
 
 

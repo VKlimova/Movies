@@ -31,16 +31,17 @@ public class JsonUtils {
         int startIndex;
         if (pageNum=="1") {
             startIndex = 0;
-            movieList = new Movie[moviesJsonArr.length()];
+           // movieList = new Movie[moviesJsonArr.length()];
         } else {
-            startIndex = movieList.length;
-            movieList = (Movie[]) resizeArray(movieList, (movieList.length+moviesJsonArr.length()));
+            startIndex = movieList.size();
+  //          movieList = (Movie[]) resizeArray(movieList, (movieList.size()+moviesJsonArr.length()));
         }
         Log.i(LOG_TAG, "JsonUtils getMovieListStringsFromJson startIndex=" + startIndex);
         for (int i = 0; (i < moviesJsonArr.length()); i++) {
             /* Get the JSON object representing the movie */
             JSONObject movieObj = moviesJsonArr.getJSONObject(i);
-            movieList[startIndex + i] = new Movie(
+//            movieList[startIndex + i] = new Movie(
+            movieList.add(new Movie(
                     movieObj.getString("original_title"),
                     movieObj.getString("title"),
                     movieObj.getString("overview"),
@@ -48,10 +49,11 @@ public class JsonUtils {
                     movieObj.getLong("popularity"),
                     movieObj.getString("release_date"),
                     movieObj.getInt("id")
+                    )
             );
-            Log.i(LOG_TAG, "JsonUtils movieList[" +String.valueOf(startIndex + i)+"] = " + movieList[startIndex + i].getEnglishTitle() );
+            Log.i(LOG_TAG, "JsonUtils movieList[" +String.valueOf(startIndex + i)+"] = " + movieList.get(startIndex + i).getEnglishTitle() );
         }
-       return movieList.length;
+       return movieList.size();
     }
 
     /** takes as the input raw Json string and returns the Review array

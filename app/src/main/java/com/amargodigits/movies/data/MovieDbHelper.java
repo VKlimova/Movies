@@ -58,8 +58,11 @@ public class MovieDbHelper extends SQLiteOpenHelper {
      */
     public static int makeMovieArrayFromSQLite(SQLiteDatabase sqLiteDatabase, String someStr)
             {
+
+                Log.i(LOG_TAG, "makeMovieArrayFromSQLite 1");
 // This projection  specifies which columns from the database
 // we will actually use in this query.
+
         String[] projection = {
                 MovieEntry.COLUMN_ENGLISH_TITLE,
                 MovieEntry.COLUMN_FILM_ID,
@@ -69,15 +72,17 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_POSTER_PATH,
                 MovieEntry.COLUMN_RELEASE_DATE
         };
-
+                Log.i(LOG_TAG, "makeMovieArrayFromSQLite 2");
         String sortOrder = MovieEntry.COLUMN_RELEASE_DATE + " DESC";
         Cursor cursor = sqLiteDatabase.query(MovieEntry.TABLE_NAME, projection, null, null, null, null, sortOrder);
-        int count = cursor.getCount();
-        movieList = new Movie[count];
+                Log.i(LOG_TAG, "makeMovieArrayFromSQLite 3");
+//        int count = cursor.getCount();
+//        movieList = new Movie[count];
         int i=0;
         try {
             while (cursor.moveToNext()) {
-                movieList[i] = new Movie(
+                Log.i(LOG_TAG, "makeMovieArrayFromSQLite i=" + i);
+               try { movieList.add( new Movie(
                         cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)),
                         cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ENGLISH_TITLE)),
                         cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_OVERVIEW)),
@@ -85,13 +90,16 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                         cursor.getFloat(cursor.getColumnIndex(MovieEntry.COLUMN_POPULARITY)),
                         cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_RELEASE_DATE)),
                         cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FILM_ID))
-                );
+                        )
+                );} catch (Exception e) {
+                   Log.i(LOG_TAG, "makeMovieArrayFromSQLite Exception = " +e.toString());
+               }
                 i++;
                 Log.i(LOG_TAG, "makeMovieArrayFromSQLite " + i +". "+ cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)));
             }
         } finally {
             cursor.close();
         }
-        return movieList.length;
+        return movieList.size();
     }
 }

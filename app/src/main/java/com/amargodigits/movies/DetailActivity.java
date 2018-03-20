@@ -54,7 +54,7 @@ public class DetailActivity extends AppCompatActivity {
     SQLiteDatabase mDb;
     static Toolbar toolbar;
     int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
-    final Movie mMovie = movieList[moviePosition];
+    final Movie mMovie = movieList.get(moviePosition);
     Drawable starDrawable;
 
 

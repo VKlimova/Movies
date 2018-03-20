@@ -22,13 +22,15 @@ import com.amargodigits.movies.utils.EndlessRecyclerViewScrollListener;
 import com.amargodigits.movies.utils.MovieAdapter;
 import com.amargodigits.movies.utils.NetworkUtils.LoadDataTask;
 
+import java.util.ArrayList;
+
 import static com.amargodigits.movies.DetailActivity.mContext;
 import static com.amargodigits.movies.utils.MovieAdapter.gridColumnsNumber;
 import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
 
 public class MainActivity extends AppCompatActivity {
     public static String LOG_TAG = "Movies Log";
-    public static Movie[] movieList;
+    public static ArrayList <Movie> movieList = new ArrayList<>();
     public static RecyclerView mRecyclerView;
     //    public static TextView mPopularItem;
 //    public static TextView mTopratedItem;
@@ -112,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
     //       mAdapter.notifyItemRangeInserted(mAdapter.getItemCount(), movieList.length );
 
         //    mAdapter = new MovieAdapter(tContext, movieList);
-            Log.i(LOG_TAG, "movieList.length=" + movieList.length);
+            Log.i(LOG_TAG, "movieList.length=" + movieList.size());
             Log.i(LOG_TAG, "mAdapter.getItemCount()=" +mAdapter.getItemCount());
 
 //           mRecyclerView.setAdapter(mAdapter);
@@ -133,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
         }catch (Exception e) {
             Log.i(LOG_TAG, "MainActivity loadNextDataFromApi Exception "+ e.toString());
         }
+        mAdapter.notifyDataSetChanged();
         // Send an API request to retrieve appropriate paginated data
         //  --> Send the request including an offset value (i.e `page`) as a query parameter.
         //  --> Deserialize and construct new model objects from the API response
@@ -204,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         mSharedPref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = mSharedPref.edit();
+         movieList.clear();
         switch (id) {
             case R.id.sort_popular: {
                 colorMenu("popular");
