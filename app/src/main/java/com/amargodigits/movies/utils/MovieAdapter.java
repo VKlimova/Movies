@@ -20,7 +20,7 @@ import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.mSharedPref;
 
 /**
- * Created by vklimova on 23.02.18.
+ *
  * MovieAdapter is used to display the content in Recycler View
  * Includes ViewHolder and Grid Item count function.
  */
@@ -82,7 +82,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
                 .placeholder(android.R.drawable.stat_sys_download)
                 .error(android.R.drawable.ic_menu_report_image)
                 .into(holder.mImage);
-
  //       Picasso.with(mContext).load("http://image.tmdb.org/t/p/w185/" + mDataset[position].getPosterPath()).into(holder.mImage);
     }
 

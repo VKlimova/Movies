@@ -4,8 +4,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
 import com.amargodigits.movies.data.MovieContract.*;
 import com.amargodigits.movies.model.Movie;
+
+import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.movieList;
 import static com.amargodigits.movies.data.MovieContract.MovieEntry.*;
 
@@ -83,6 +87,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                         cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FILM_ID))
                 );
                 i++;
+                Log.i(LOG_TAG, "makeMovieArrayFromSQLite " + i +". "+ cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)));
             }
         } finally {
             cursor.close();

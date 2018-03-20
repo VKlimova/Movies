@@ -114,11 +114,16 @@ public class DetailActivity extends AppCompatActivity {
                 .appendPath("p")
                 .appendPath("w185")
                 .appendPath(mMovie.getPosterPath());
-        Picasso.with(this)
-                .load(builder.build().toString())
+
+        Picasso.with(this).setIndicatorsEnabled(true);
+
+        Picasso.with(this).load(builder.build().toString())
                 .placeholder(android.R.drawable.stat_sys_download)
                 .error(android.R.drawable.ic_menu_report_image)
                 .into(image_iv);
+
+//        if (mMovie.getUnLiking()) { image_iv.setAlpha(0.5f); }
+
         setTitle(mMovie.getOriginalTitle());
     }
 
@@ -337,6 +342,7 @@ public class DetailActivity extends AppCompatActivity {
 //        String selection = MovieContract.MovieEntry.COLUMN_FILM_ID + "=" + movie.getId();
 //        Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, null, selection, null, null, null, null);
 //        int count = cursor.getCount();
+        ImageView image_iv = findViewById(R.id.image_iv);
 
         if (iLikeMovie(movie.getId())) {
             result = unLikeMovie(movie);
@@ -360,6 +366,7 @@ public class DetailActivity extends AppCompatActivity {
         if (count == 0) {
             return false;
         } else {
+
             return true;
         }
     }
@@ -374,14 +381,21 @@ public class DetailActivity extends AppCompatActivity {
         cv.put(COLUMN_RELEASE_DATE, movie.getReleaseDate());
         cv.put(COLUMN_FILM_ID, movie.getId());
         Toast.makeText(this, "Saving: " + cv.getAsString(COLUMN_ORIGINAL_TITLE), Toast.LENGTH_LONG).show();
-        return mDb.insert(TABLE_NAME, null, cv);
+        long ret =  mDb.insert(TABLE_NAME, null, cv);
+        NetworkUtils.LoadDataTask mAsyncTask = new NetworkUtils.LoadDataTask(getApplicationContext());
+        mAsyncTask.execute("liked");
+        return ret;
 
     }
 
     private long unLikeMovie(Movie movie) {
         Toast.makeText(this, "Unliking: " + movie.getOriginalTitle(), Toast.LENGTH_LONG).show();
+        movie.unLike();
         String deleteSql = COLUMN_FILM_ID + "=" + movie.getId();
-        return mDb.delete(TABLE_NAME, deleteSql, null);
+        long ret = mDb.delete(TABLE_NAME, deleteSql, null);
+        NetworkUtils.LoadDataTask mAsyncTask = new NetworkUtils.LoadDataTask(getApplicationContext());
+        mAsyncTask.execute("liked");
+        return ret;
     }
 
     private void setStarColor() {
@@ -400,12 +414,19 @@ public class DetailActivity extends AppCompatActivity {
         }
     }
 
-    ;
+    @Override
+    public void onBackPressed() {
+        // do something on back.
+        Log.i(LOG_TAG, "DetailActivity onBackPressed");
+        super.onBackPressed();
+        return;
+    }
 }
 
-// TODO : Кнопку Share
-// TODO : Save to Google Drive
-// TODO : hide unliked from list or mark them somehow
-// TODO : landscape layout poster shrink :)
-// TODO : endless scroll
-// TODO : Preferencies to set search strings and share strings
+// TODO 1: Кнопку Share - easy
+// TODO 2: Save to Google Drive account - difficult
+// TODO 4: endless scroll - difficult
+// TODO 5: Preferencies to set search strings and share strings - difficult
+// TODO 6: Collapse many Videos - easy
+// TODO 7: stars in Main and Detail should be different - easy
+// TODO 8: languages: https://developers.themoviedb.org/3/getting-started/languages - with p.5

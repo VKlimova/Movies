@@ -36,7 +36,9 @@ public final class NetworkUtils {
     private static final String BASE_URLp1 = "https://api.themoviedb.org/3/movie/";
     private static final String BASE_URLp2 = "?api_key=";
     private static final String BASE_URLp3 = "&callback=";
-    private static final String BASE__YOUTUBE_URL = "https://www.youtube.com/watch?v=";
+    private static final String BASE_URLp4 = "&page=";
+    private static final String BASE_YOUTUBE_URL = "https://www.youtube.com/watch?v=";
+    static public Context mContext;
 
     /**
      * Builds the URL used to get movies list from the TMDB server.
@@ -44,16 +46,17 @@ public final class NetworkUtils {
      * @param sortOrder The order for sorting queue results.
      * @return The URL to use to query the movie server.
      */
-    public static URL buildUrl(String sortOrder) {
+    public static URL buildUrl(String sortOrder, String page) {
+        Log.i(LOG_TAG, "NetworkUtils buildUrl");
         if (sortOrder.equals("")) {
             sortOrder = "top_rated";
         }
-        Uri builtUri = Uri.parse(BASE_URLp1 + sortOrder + BASE_URLp2 + BuildConfig.MOVIESDB_API_KEY + BASE_URLp3 + sortOrder).buildUpon().build();
+        Uri builtUri = Uri.parse(BASE_URLp1 + sortOrder + BASE_URLp2 + BuildConfig.MOVIESDB_API_KEY + BASE_URLp3 + sortOrder + BASE_URLp4 + page).buildUpon().build();
         URL url = null;
         try {
             url = new URL(builtUri.toString());
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            Log.i(LOG_TAG, "NetworkUtils buildUrl "+ e.toString());
         }
         return url;
     }
@@ -111,7 +114,7 @@ public final class NetworkUtils {
 
     public static URL buildYoutubeUrl(String youtubeKey) {
 
-        Uri builtUri = Uri.parse(BASE__YOUTUBE_URL + String.valueOf(youtubeKey));
+        Uri builtUri = Uri.parse(BASE_YOUTUBE_URL + String.valueOf(youtubeKey));
         URL url = null;
         try {
             url = new URL(builtUri.toString());
@@ -151,7 +154,7 @@ public final class NetworkUtils {
      * To load movies list to movieList array
      */
 
-    public static class LoadDataTask extends AsyncTask<String, Void, Integer> {
+    public static class LoadDataTask extends AsyncTask<String, Void, String> {
         Context mContext;
         String mSortOrder;
         public LoadDataTask(Context context) {
@@ -164,13 +167,19 @@ public final class NetworkUtils {
          * @return The number of movies in the array
          */
         @Override
-        protected Integer doInBackground(String... params) {
-
+        protected String doInBackground(String... params) {
+            String pageN;
             if (params.length == 0) {
-                return 0;
+                return "";
             }
+            if (params[1].isEmpty()) {
+                pageN="1";
+            } else {
+                pageN=params[1];
+            }
+
             mSortOrder = params[0];
-            Log.i(LOG_TAG, "List of movies selected: " + params[0].toString().toUpperCase());
+            Log.i(LOG_TAG, "NetworkUtils LoadDataTask doInBackground List of movies selected: " + params[0].toString() + " page=" + pageN);
             if (params[0]=="liked") { // Liked movies are taken from SQLite database on the phone
                 SQLiteDatabase mDb;
                 // Create a DB helper (this will create the DB if run for the first time)
@@ -178,41 +187,46 @@ public final class NetworkUtils {
                 // Keep a reference to the mDb until paused or killed. Get a writable database
                 // because you will be adding restaurant customers
                 mDb = dbHelper.getWritableDatabase();
-                return makeMovieArrayFromSQLite(mDb, "");
-
+                makeMovieArrayFromSQLite(mDb, "");
+                return "1";
             } else { // Popular or top-rated movies
-                if (isOnline(mContext)) {
+                Log.i(LOG_TAG, "1- NetworkUtils LoadDataTask doInBackground params[0]=" + params[0]);
+                URL scheduleRequestUrl = NetworkUtils.buildUrl(params[0], pageN);
+                Log.i(LOG_TAG, "20 movies RequestUrl = " + scheduleRequestUrl.toString());
+//                Log.i(LOG_TAG, "mContext = " + mContext.toString());
+//                if  (isOnline(mContext)) //(true)
+//                {
                     try {
-                        URL scheduleRequestUrl = NetworkUtils.buildUrl(params[0]);
-                        Log.i(LOG_TAG, "20 movies RequestUrl = " + scheduleRequestUrl.toString());
+                        Log.i(LOG_TAG, "2- NetworkUtils LoadDataTask doInBackground params[0]=" + params[0]);
                         String moviesResponse = NetworkUtils
                                 .getResponseFromHttpUrl(scheduleRequestUrl);
                         int jsonStart = moviesResponse.indexOf("(") + 1;
                         String jsonMoviesResponse = moviesResponse.substring(jsonStart, moviesResponse.length() - 1);
-                        return JsonUtils.getMovieListStringsFromJson(jsonMoviesResponse);
+                        JsonUtils.getMovieListStringsFromJson(jsonMoviesResponse, params[1]);
+                        return pageN;
                     } catch (Exception e) {
                         Log.i(LOG_TAG, R.string.error_message + e.toString());
                         e.printStackTrace();
                     }
 
-                } else {
-                    Toast.makeText(mContext, R.string.no_data, Toast.LENGTH_LONG).show();
-                }
+//                } else {
+//                    Toast.makeText(mContext, R.string.no_data, Toast.LENGTH_LONG).show();
+//                }
             }
-            return 0;
+            return "";
         }
         /**
          * This method executes after
          * loading movies list
          */
         @Override
-        protected void onPostExecute(Integer result) {
-            super.onPostExecute(result);
-            Log.i(LOG_TAG, "LoadDataTask onPostExecute get result =" + result.toString());
-            if (result > 0) {
-                MainActivity.doRecView(mContext, mSortOrder);
+        protected void onPostExecute(String pageN) {
+            super.onPostExecute(pageN);
+            Log.i(LOG_TAG, "LoadDataTask onPostExecute get result =" + pageN);
+            if (pageN.length()>0) {
+                MainActivity.doRecView(mContext, mSortOrder, pageN);
             } else {
-                Toast.makeText(mContext, R.string.no_data, Toast.LENGTH_LONG).show();
+                Toast.makeText(mContext, "pageN.length()==0", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -224,7 +238,7 @@ public final class NetworkUtils {
      */
 
     public static class LoadReviewsTask extends AsyncTask<Integer, Void, Review[]> {
-        Context mContext;
+
         public LoadReviewsTask(Context context) {
             mContext = context;
         }
@@ -266,7 +280,6 @@ public final class NetworkUtils {
             DetailActivity.addReviews(result);
         }
     }
-
 
     /**
      * This method creates AsyncTask to make a Network request in background

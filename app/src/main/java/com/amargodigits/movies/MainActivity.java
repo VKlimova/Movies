@@ -18,9 +18,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amargodigits.movies.model.Movie;
+import com.amargodigits.movies.utils.EndlessRecyclerViewScrollListener;
 import com.amargodigits.movies.utils.MovieAdapter;
 import com.amargodigits.movies.utils.NetworkUtils.LoadDataTask;
 
+import static com.amargodigits.movies.DetailActivity.mContext;
 import static com.amargodigits.movies.utils.MovieAdapter.gridColumnsNumber;
 import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
 
@@ -32,8 +34,11 @@ public class MainActivity extends AppCompatActivity {
 //    public static TextView mTopratedItem;
     public String sortOrder;
     public static SharedPreferences mSharedPref;
+    static MovieAdapter mAdapter;
+    public static RecyclerView.LayoutManager mLayoutManager;
     static Toolbar mainToolbar;
     Menu mMenu;
+    private static EndlessRecyclerViewScrollListener scrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,15 +55,14 @@ public class MainActivity extends AppCompatActivity {
         mainToolbar.setTitle(makeTitle(sortOrder));
         setSupportActionBar(mainToolbar);
 
-
         if (sortOrder.contains("liked")) {
             LoadDataTask mLikedAsyncTask = new LoadDataTask(getApplicationContext());
-            mLikedAsyncTask.execute("liked");
+            mLikedAsyncTask.execute("liked","0");
         } else {
             if (isOnline(getApplicationContext())) {
                 try {
                     LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                    mAsyncTasc.execute(sortOrder);
+                    mAsyncTasc.execute(sortOrder, "1");
                 } catch (Exception e) {
                     Log.i(LOG_TAG, "onCreateException " + e.toString());
                 }
@@ -68,20 +72,73 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static void doRecView(Context tContext, String sortOrder) {
-        MovieAdapter mAdapter = new MovieAdapter(tContext, movieList);
-        mRecyclerView.setHasFixedSize(true);
-        GridLayoutManager mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
-        try {
+    public static void doRecView(Context tContext, String sortOrder, String pageN) {
+        Log.i(LOG_TAG, "MainActivity doRecView pageN="+pageN);
+        if (sortOrder.contains("liked")){
+            mAdapter = new MovieAdapter(tContext, movieList);
+            mRecyclerView.setHasFixedSize(true);
+            GridLayoutManager mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
             mainToolbar.setTitle(makeTitle(sortOrder));
             mRecyclerView.setLayoutManager(mLayoutManager);
             mRecyclerView.setAdapter(mAdapter);
-        } catch (Exception e) {
-            Log.i("WD", "doRecView1 Exception " + e.toString());
+            return;
         }
+        if (pageN=="1") {
+            mAdapter = new MovieAdapter(tContext, movieList);
+            mRecyclerView.setHasFixedSize(true);
+            GridLayoutManager mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
+            mainToolbar.setTitle(makeTitle(sortOrder));
+            mRecyclerView.setLayoutManager(mLayoutManager);
+                // Retain an instance so that you can call `resetState()` for fresh searches
+                scrollListener = new EndlessRecyclerViewScrollListener(mLayoutManager) {
+                    @Override
+                    public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                        Log.i(LOG_TAG, "MainActivity onLoadMore");
+                        // Triggered only when new data needs to be appended to the list
+                        // Add whatever code is needed to append new items to the bottom of the list
+                        loadNextDataFromApi(page);
+                    }
+                };
+                // Adds the scroll listener to RecyclerView
+                mRecyclerView.addOnScrollListener(scrollListener);
+                mRecyclerView.setAdapter(mAdapter);
+    } else {
 
+            mAdapter.notifyItemInserted(mAdapter.getItemCount()+1);
+            mAdapter.notifyItemInserted(mAdapter.getItemCount()+2);
+            mAdapter.notifyItemInserted(mAdapter.getItemCount()+3);
+            mAdapter.notifyItemInserted(mAdapter.getItemCount()+4);
+
+    //       mAdapter.notifyItemRangeInserted(mAdapter.getItemCount(), movieList.length );
+
+        //    mAdapter = new MovieAdapter(tContext, movieList);
+            Log.i(LOG_TAG, "movieList.length=" + movieList.length);
+            Log.i(LOG_TAG, "mAdapter.getItemCount()=" +mAdapter.getItemCount());
+
+//           mRecyclerView.setAdapter(mAdapter);
+//           mRecyclerView.smoothScrollToPosition(movieList.length);
+
+        }
     }
 
+    // Append the next page of data into the adapter
+    // This method probably sends out a network request and appends new data items to your adapter.
+    public static void loadNextDataFromApi(int offset) {
+        Log.i(LOG_TAG, "MainActivity loadNextDataFromApi offset=" + offset);
+        LoadDataTask mAsyncTasc = new LoadDataTask(mContext);
+        String pageN = offset + "";
+        Log.i(LOG_TAG, "MainActivity loadNextDataFromApi offset pageN=" + pageN);
+        try {
+            mAsyncTasc.execute("top_rated", pageN);
+        }catch (Exception e) {
+            Log.i(LOG_TAG, "MainActivity loadNextDataFromApi Exception "+ e.toString());
+        }
+        // Send an API request to retrieve appropriate paginated data
+        //  --> Send the request including an offset value (i.e `page`) as a query parameter.
+        //  --> Deserialize and construct new model objects from the API response
+        //  --> Append the new data objects to the existing set of items inside the array of items
+        //  --> Notify the adapter of the new items made with `notifyItemRangeInserted()`
+    }
 
     /**
      * This is where we inflate and set up the menu for this Activity.
@@ -153,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
                 editor.putString("SORT", "popular");
                 editor.apply();
                 LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                mAsyncTasc.execute("popular");
+                mAsyncTasc.execute("popular", "1");
                 return true;
             }
             case R.id.sort_toprated: {
@@ -161,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
                 editor.putString("SORT", "top_rated");
                 editor.apply();
                 LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                mAsyncTasc.execute("top_rated");
+                mAsyncTasc.execute("top_rated", "1");
                 return true;
             }
             case R.id.sort_liked: {
@@ -169,10 +226,9 @@ public class MainActivity extends AppCompatActivity {
                 editor.putString("SORT", "liked");
                 editor.apply();
                 LoadDataTask mAsyncTask = new LoadDataTask(getApplicationContext());
-                mAsyncTask.execute("liked");
+                mAsyncTask.execute("liked", "1");
                 return true;
             }
-
         }
         return super.onOptionsItemSelected(item);
     }
@@ -181,5 +237,4 @@ public class MainActivity extends AppCompatActivity {
         sortOrder = sortOrder.replace("_", " ");
         return sortOrder.substring(0, 1).toUpperCase() + sortOrder.substring(1) + " movies";
     }
-
 }

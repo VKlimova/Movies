@@ -16,6 +16,7 @@ public class Movie implements Parcelable {
     private float   popularity;
     private String  releaseDate;
     private int id;
+    private Boolean unLiking;
 
     public Movie(String originalTitle, String englishTitle, String overview, String posterPath, float popularity, String releaseDate, int id)
      {
@@ -26,6 +27,7 @@ public class Movie implements Parcelable {
         this.releaseDate = releaseDate;
         this.englishTitle = englishTitle;
         this.id = id;
+      this.unLiking = false;
     }
 
     public Movie(Parcel in)
@@ -39,6 +41,7 @@ public class Movie implements Parcelable {
         this.releaseDate = data[4];
         this.englishTitle = data[5];
         this.id = Integer.parseInt(data[6]);
+        this.unLiking = false;
     }
 
     public String getOriginalTitle() { return this.originalTitle;}
@@ -48,15 +51,17 @@ public class Movie implements Parcelable {
     public float getPopularity() {return this.popularity; }
     public String getReleaseDate() {return this.releaseDate; }
     public int getId() {return this.id; }
+    public boolean getUnLiking() {return this.unLiking; }
+    public void unLike() {this.unLiking=true;}
     @Override
     public int describeContents() {
         return 0;
     }
 
-
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeStringArray(new String[] {originalTitle, englishTitle, overview, posterPath, String.valueOf(popularity), releaseDate, String.valueOf(id)});
+        parcel.writeStringArray(new String[] {originalTitle, englishTitle, overview, posterPath,
+                String.valueOf(popularity), releaseDate, String.valueOf(id), String.valueOf(unLiking)});
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
