@@ -59,7 +59,6 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     public static int makeMovieArrayFromSQLite(SQLiteDatabase sqLiteDatabase, String someStr)
             {
 
-                Log.i(LOG_TAG, "makeMovieArrayFromSQLite 1");
 // This projection  specifies which columns from the database
 // we will actually use in this query.
 
@@ -72,16 +71,15 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_POSTER_PATH,
                 MovieEntry.COLUMN_RELEASE_DATE
         };
-                Log.i(LOG_TAG, "makeMovieArrayFromSQLite 2");
+
         String sortOrder = MovieEntry.COLUMN_RELEASE_DATE + " DESC";
         Cursor cursor = sqLiteDatabase.query(MovieEntry.TABLE_NAME, projection, null, null, null, null, sortOrder);
-                Log.i(LOG_TAG, "makeMovieArrayFromSQLite 3");
 //        int count = cursor.getCount();
 //        movieList = new Movie[count];
         int i=0;
         try {
             while (cursor.moveToNext()) {
-                Log.i(LOG_TAG, "makeMovieArrayFromSQLite i=" + i);
+
                try { movieList.add( new Movie(
                         cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)),
                         cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ENGLISH_TITLE)),

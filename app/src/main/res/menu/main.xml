@@ -19,6 +19,12 @@
         android:icon="@android:drawable/btn_star_big_off"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="Settings"
+        app:showAsAction="ifRoom" />
+
     <!--android:icon="@drawable/heart"
     android:icon="@android:drawable/ic_input_get"
     -->

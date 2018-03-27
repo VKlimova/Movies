@@ -1,6 +1,7 @@
 package com.amargodigits.movies;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
             if (isOnline(getApplicationContext())) {
                 try {
                     LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                    mAsyncTasc.execute(sortOrder, "1");
+                    mAsyncTasc.execute(sortOrder, "0");
                 } catch (Exception e) {
                     Log.i(LOG_TAG, "onCreateException " + e.toString());
                 }
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static void doRecView(Context tContext, String sortOrder, String pageN) {
+    public static void doRecView(Context tContext, final String sortOrder, String pageN) {
         Log.i(LOG_TAG, "MainActivity doRecView pageN="+pageN);
         if (sortOrder.contains("liked")){
             mAdapter = new MovieAdapter(tContext, movieList);
@@ -85,7 +86,10 @@ public class MainActivity extends AppCompatActivity {
             mRecyclerView.setAdapter(mAdapter);
             return;
         }
-        if (pageN=="1") {
+
+        // For the zero page we create the mAdapter and mLayoutManager
+
+        if (pageN=="0") {
             mAdapter = new MovieAdapter(tContext, movieList);
             mRecyclerView.setHasFixedSize(true);
             GridLayoutManager mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
@@ -98,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(LOG_TAG, "MainActivity onLoadMore");
                         // Triggered only when new data needs to be appended to the list
                         // Add whatever code is needed to append new items to the bottom of the list
-                        loadNextDataFromApi(page);
+                        loadNextDataFromApi(sortOrder, page);
                     }
                 };
                 // Adds the scroll listener to RecyclerView
@@ -125,17 +129,20 @@ public class MainActivity extends AppCompatActivity {
 
     // Append the next page of data into the adapter
     // This method probably sends out a network request and appends new data items to your adapter.
-    public static void loadNextDataFromApi(int offset) {
-        Log.i(LOG_TAG, "MainActivity loadNextDataFromApi offset=" + offset);
+    public static void loadNextDataFromApi(String sortOrder, int offset) {
+        Log.i(LOG_TAG, "MainActivity loadNextDataFromApi sortOrder=" + sortOrder + " offset=" + offset);
         LoadDataTask mAsyncTasc = new LoadDataTask(mContext);
         String pageN = offset + "";
         Log.i(LOG_TAG, "MainActivity loadNextDataFromApi offset pageN=" + pageN);
         try {
-            mAsyncTasc.execute("top_rated", pageN);
+            mAsyncTasc.execute(sortOrder, pageN);
+
+            Log.i(LOG_TAG, "MainActivity loadNextDataFromApi mAsyncTasc.execute("+sortOrder +", " + pageN + ")");
         }catch (Exception e) {
             Log.i(LOG_TAG, "MainActivity loadNextDataFromApi Exception "+ e.toString());
         }
         mAdapter.notifyDataSetChanged();
+        Log.i(LOG_TAG, "MainActivity loadNextDataFromApi mAdapter.notifyDataSetChanged();");
         // Send an API request to retrieve appropriate paginated data
         //  --> Send the request including an offset value (i.e `page`) as a query parameter.
         //  --> Deserialize and construct new model objects from the API response
@@ -205,32 +212,44 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        mSharedPref = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = mSharedPref.edit();
-         movieList.clear();
+
         switch (id) {
             case R.id.sort_popular: {
                 colorMenu("popular");
+                mSharedPref = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = mSharedPref.edit();
                 editor.putString("SORT", "popular");
                 editor.apply();
+                movieList.clear();
                 LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                mAsyncTasc.execute("popular", "1");
+                mAsyncTasc.execute("popular", "0");
                 return true;
             }
             case R.id.sort_toprated: {
                 colorMenu("top_rated");
+                mSharedPref = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = mSharedPref.edit();
                 editor.putString("SORT", "top_rated");
                 editor.apply();
+                movieList.clear();
                 LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                mAsyncTasc.execute("top_rated", "1");
+                mAsyncTasc.execute("top_rated", "0");
                 return true;
             }
             case R.id.sort_liked: {
                 colorMenu("liked");
+                mSharedPref = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = mSharedPref.edit();
                 editor.putString("SORT", "liked");
                 editor.apply();
+                movieList.clear();
                 LoadDataTask mAsyncTask = new LoadDataTask(getApplicationContext());
-                mAsyncTask.execute("liked", "1");
+                mAsyncTask.execute("liked", "0");
+                return true;
+            }
+            case R.id.settings: {
+                Intent startSettingsActivity = new Intent(this, SettingsActivity.class);
+                startActivity(startSettingsActivity);
                 return true;
             }
         }

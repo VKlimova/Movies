@@ -16,6 +16,7 @@ import com.amargodigits.movies.R;
 import com.amargodigits.movies.data.MovieDbHelper;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
+import com.amargodigits.movies.model.Cast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,15 +49,37 @@ public final class NetworkUtils {
      */
     public static URL buildUrl(String sortOrder, String page) {
         Log.i(LOG_TAG, "NetworkUtils buildUrl");
+        String pageStr= (String) String.valueOf(Integer.parseInt(page)+1);
+
         if (sortOrder.equals("")) {
             sortOrder = "top_rated";
         }
-        Uri builtUri = Uri.parse(BASE_URLp1 + sortOrder + BASE_URLp2 + BuildConfig.MOVIESDB_API_KEY + BASE_URLp3 + sortOrder + BASE_URLp4 + page).buildUpon().build();
+        Uri builtUri = Uri.parse(BASE_URLp1 + sortOrder + BASE_URLp2 + BuildConfig.MOVIESDB_API_KEY + BASE_URLp3 + sortOrder + BASE_URLp4 + pageStr).buildUpon().build();
         URL url = null;
         try {
             url = new URL(builtUri.toString());
         } catch (MalformedURLException e) {
             Log.i(LOG_TAG, "NetworkUtils buildUrl "+ e.toString());
+        }
+        return url;
+    }
+
+    /**
+     * Builds the URL used to get CAST list from the TMDB server.
+     *
+     * @param movieId The id of the movie
+     * @return The URL to use to query the movie server.
+     */
+    //    https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key=xxxxxxxxxxxxx
+
+    public static URL buildCastUrl(int movieId) {
+
+        Uri builtUri = Uri.parse(BASE_URLp1 + String.valueOf(movieId) + "/credits" + BASE_URLp2 + BuildConfig.MOVIESDB_API_KEY + BASE_URLp3).buildUpon().build();
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
         return url;
     }
@@ -173,7 +196,7 @@ public final class NetworkUtils {
                 return "";
             }
             if (params[1].isEmpty()) {
-                pageN="1";
+                pageN="0";
             } else {
                 pageN=params[1];
             }
@@ -231,12 +254,10 @@ public final class NetworkUtils {
         }
     }
 
-
     /**
      * This method creates AsyncTask to make a Network request in background
      * To load reviews list
      */
-
     public static class LoadReviewsTask extends AsyncTask<Integer, Void, Review[]> {
 
         public LoadReviewsTask(Context context) {
@@ -280,6 +301,55 @@ public final class NetworkUtils {
             DetailActivity.addReviews(result);
         }
     }
+
+    /**
+     * This method creates AsyncTask to make a Network request in background
+     * To load reviews list
+     */
+    public static class LoadCastTask extends AsyncTask<Integer, Void, Cast[]> {
+
+        public LoadCastTask(Context context) {
+            mContext = context;
+        }
+
+        /**
+         * This method make a Network request in background
+         * Load cast list to castList
+         * @return Review[] -  the reviews  array
+         */
+        @Override
+        protected Cast[] doInBackground(Integer... params) {
+            if (params.length == 0) {
+                return null;
+            }
+            if (isOnline(mContext)) {
+                try {
+                    URL scheduleRequestUrl = NetworkUtils.buildCastUrl(params[0]);
+                    Log.i(LOG_TAG, "Cast RequestUrl = " + scheduleRequestUrl.toString());
+                    Cast[] castArr;
+                    String castResponse = NetworkUtils
+                            .getResponseFromHttpUrl(scheduleRequestUrl);
+                    int jsonStart = castResponse.indexOf("(") + 1;
+                    String jsonCastResponse = castResponse.substring(jsonStart, castResponse.length() - 1);
+                    castArr= JsonUtils.getCastListStringsFromJson(jsonCastResponse);
+                    return castArr;
+                } catch (Exception e) {
+                    Log.i(LOG_TAG, R.string.error_message + e.toString());
+                    e.printStackTrace();
+                }
+            } else {
+                Toast.makeText(mContext, R.string.no_data, Toast.LENGTH_LONG).show();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Cast[] result) {
+            super.onPostExecute(result);
+            DetailActivity.addCast(result);
+        }
+    }
+
 
     /**
      * This method creates AsyncTask to make a Network request in background

@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import com.amargodigits.movies.data.MovieContract;
 import com.amargodigits.movies.data.MovieDbHelper;
+import com.amargodigits.movies.model.Cast;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
@@ -40,6 +41,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
+import static com.amargodigits.movies.MainActivity.mAdapter;
+import static com.amargodigits.movies.MainActivity.mRecyclerView;
 import static com.amargodigits.movies.MainActivity.mSharedPref;
 import static com.amargodigits.movies.MainActivity.movieList;
 import static com.amargodigits.movies.data.MovieContract.MovieEntry.*;
@@ -50,6 +53,7 @@ public class DetailActivity extends AppCompatActivity {
     private static final int DEFAULT_POSITION = -1;
     public static TextView videosTxt;
     public static TextView reviewsTxt;
+    public static TextView castTxt;
     public static Context mContext;
     SQLiteDatabase mDb;
     static Toolbar toolbar;
@@ -79,14 +83,13 @@ public class DetailActivity extends AppCompatActivity {
         try {
             // Create a DB helper (this will create the DB if run for the first time)
             MovieDbHelper dbHelper = new MovieDbHelper(this);
-            // Keep a reference to the mDb until paused or killed. Get a writable database
-            // because you will be adding restaurant customers
             mDb = dbHelper.getWritableDatabase();
         } catch (Exception e) {
             Log.i(LOG_TAG, "DetailActivity Exception " + e.toString());
         }
         reviewsTxt = findViewById(R.id.reviewsTxt);
         videosTxt = findViewById(R.id.videosTxt);
+        castTxt = findViewById(R.id.castTxt);
 
         if (isOnline(getApplicationContext())) {
             try {
@@ -95,6 +98,10 @@ public class DetailActivity extends AppCompatActivity {
 
                 NetworkUtils.LoadVideosTask mVAsyncTasc = new NetworkUtils.LoadVideosTask(getApplicationContext());
                 mVAsyncTasc.execute(mMovie.getId());
+
+                NetworkUtils.LoadCastTask mCAsyncTasc = new NetworkUtils.LoadCastTask(getApplicationContext());
+                mCAsyncTasc.execute(mMovie.getId());
+
 
             } catch (Exception e) {
                 Log.i(LOG_TAG, e.toString());
@@ -115,7 +122,7 @@ public class DetailActivity extends AppCompatActivity {
                 .appendPath("w185")
                 .appendPath(mMovie.getPosterPath());
 
-        Picasso.with(this).setIndicatorsEnabled(true);
+//        Picasso.with(this).setIndicatorsEnabled(true);
 
         Picasso.with(this).load(builder.build().toString())
                 .placeholder(android.R.drawable.stat_sys_download)
@@ -144,6 +151,8 @@ public class DetailActivity extends AppCompatActivity {
     TextView releaseDate;
     @BindView(R.id.search_button)
     Button search_button;
+    @BindView(R.id.share_button)
+    Button share_button;
 
     /**
      * Shows the movie information on the screen
@@ -163,13 +172,27 @@ public class DetailActivity extends AppCompatActivity {
         if (movie.getOriginalTitle().length() == movie.getEnglishTitle().length()) {
             englishTitle.setVisibility(View.GONE);
         }
+
+
         Log.i(LOG_TAG, "BuildConfig.SEARCH_STRING_1 = " + BuildConfig.SEARCH_STRING_1);
         if ((BuildConfig.SEARCH_STRING_1.contains("http://")) || (BuildConfig.SEARCH_STRING_1.contains("htts://"))) {
+
             linkTitle = BuildConfig.SEARCH_STRING_1 + movie.getEnglishTitle() + BuildConfig.SEARCH_STRING_2;
             Log.i(LOG_TAG, "Opening from BuildConfig: " + linkTitle);
+//            Uri.Builder builder = new Uri.Builder();
+//            builder.scheme("https")
+//                    .authority("www.google.ru")
+//                    .appendPath("search")
+//                    .appendQueryParameter("q", movie.getEnglishTitle());
+//            String myUrl = builder.build().toString();
+//            Log.i(LOG_TAG, "builder.scheme " + myUrl);
+
+
         } else {
+
             linkTitle = "https://www.google.ru/search?q=" + movie.getEnglishTitle() + " " + BuildConfig.SEARCH_STRING_2;
             Log.i(LOG_TAG, "Opening default: " + linkTitle);
+
         }
         Log.i(LOG_TAG, "DetailActivity linkTitle = " + linkTitle);
         search_button.setOnClickListener(new View.OnClickListener() {
@@ -177,6 +200,18 @@ public class DetailActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // Launch web intent
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkTitle));
+                startActivity(intent);
+            }
+        });
+        final String shareText=movie.getEnglishTitle() + "\n" +movie.getReleaseDate() + "\n" + movie.getOverview();
+        share_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Launch web intent
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.putExtra(Intent.EXTRA_TEXT, shareText);
+                intent.setType("text/plain");
                 startActivity(intent);
             }
         });
@@ -224,6 +259,33 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
     }
+
+    /**
+     * Populates the CAST list on the screen
+     *
+     * @param castAr The array with the reviews
+     */
+    public static SpannableStringBuilder castSpan = new SpannableStringBuilder();
+
+    public static void addCast(Cast[] castAr) {
+        castTxt.setText("\nCast:\n");
+        for (Cast cast : castAr) {
+                castTxt.append("* " + cast.getName() + "\n");
+            }
+
+//        castSpan.clear();
+//        castSpan.append("Cast: ");
+//        if (castAr == null) {
+//            castSpan.append("No cast in base");
+//        } else {
+//            castSpan.append(castAr.length + "\n\n");
+//            for (Cast cast : castAr) {
+//                singleTextView(castTxt, "> ", cast.getName() + " ", "");
+////                singleTextView(videosTxt, "> ", cast.getName() + " ", buildYoutubeUrl(cast.getKey()).toString());
+//            }
+//        }
+    }
+
 
 
     /**
@@ -350,6 +412,8 @@ public class DetailActivity extends AppCompatActivity {
             result = likeMovie(movie);
         }
         setStarColor();
+
+        Log.i(LOG_TAG, "DetailActivity likeMovieClick mAdapter.notifyDataSetChanged();");
         return result;
     }
 
@@ -366,10 +430,14 @@ public class DetailActivity extends AppCompatActivity {
         if (count == 0) {
             return false;
         } else {
-
             return true;
         }
     }
+
+    /** likeMovie insert the record with "movie" to mDb
+     * @param movie -  film
+     * @return the number of inserted records
+     **/
 
     private long likeMovie(Movie movie) {
         ContentValues cv = new ContentValues();
@@ -380,21 +448,27 @@ public class DetailActivity extends AppCompatActivity {
         cv.put(COLUMN_POSTER_PATH, movie.getPosterPath());
         cv.put(COLUMN_RELEASE_DATE, movie.getReleaseDate());
         cv.put(COLUMN_FILM_ID, movie.getId());
-        Toast.makeText(this, "Saving: " + cv.getAsString(COLUMN_ORIGINAL_TITLE), Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, "Saving: " + cv.getAsString(COLUMN_ORIGINAL_TITLE), Toast.LENGTH_LONG).show();
         long ret =  mDb.insert(TABLE_NAME, null, cv);
-        NetworkUtils.LoadDataTask mAsyncTask = new NetworkUtils.LoadDataTask(getApplicationContext());
-        mAsyncTask.execute("liked");
+//        NetworkUtils.LoadDataTask mAsyncTask = new NetworkUtils.LoadDataTask(getApplicationContext());
+//        mAsyncTask.execute("liked","0");
         return ret;
-
     }
 
+    /** unLikeMovie delete the record with "movie" from mDb
+     * @param movie -  film
+     * @return the number of deleted records
+     **/
+
     private long unLikeMovie(Movie movie) {
-        Toast.makeText(this, "Unliking: " + movie.getOriginalTitle(), Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, "Unliking: " + movie.getOriginalTitle(), Toast.LENGTH_LONG).show();
         movie.unLike();
         String deleteSql = COLUMN_FILM_ID + "=" + movie.getId();
         long ret = mDb.delete(TABLE_NAME, deleteSql, null);
-        NetworkUtils.LoadDataTask mAsyncTask = new NetworkUtils.LoadDataTask(getApplicationContext());
-        mAsyncTask.execute("liked");
+            movieList.remove(movie);
+            mAdapter.notifyDataSetChanged();
+//        NetworkUtils.LoadDataTask mAsyncTask = new NetworkUtils.LoadDataTask(getApplicationContext());
+//        mAsyncTask.execute("liked","0");
         return ret;
     }
 
@@ -404,7 +478,7 @@ public class DetailActivity extends AppCompatActivity {
             if (starDrawable != null) {
                 starDrawable.mutate();
                 if (iLikeMovie(mMovie.getId())) {
-                    starDrawable.setColorFilter(Color.YELLOW, PorterDuff.Mode.SRC_ATOP);
+                    starDrawable.setColorFilter(Color.rgb(255,153,51), PorterDuff.Mode.SRC_ATOP);
                 } else {
                     starDrawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
                 }
@@ -423,10 +497,16 @@ public class DetailActivity extends AppCompatActivity {
     }
 }
 
-// TODO 1: Кнопку Share - easy
+// DONE 1: Кнопку Share - easy
 // TODO 2: Save to Google Drive account - difficult
-// TODO 4: endless scroll - difficult
+// DONE 3: Fix bug with endless scroll
+// DONE 4: endless scroll - difficult
 // TODO 5: Preferencies to set search strings and share strings - difficult
-// TODO 6: Collapse many Videos - easy
-// TODO 7: stars in Main and Detail should be different - easy
-// TODO 8: languages: https://developers.themoviedb.org/3/getting-started/languages - with p.5
+// Postponed 6: Collapse many Videos - easy
+// DONE 7: stars in Main and Detail should be different - easy
+// TODO 8: languages: https://api.themoviedb.org/3/movie/76341?api_key=<<api_key>>&language=ru - with p.5
+//  ... 8: https://api.themoviedb.org/3/configuration/languages?api_key=...&callback=
+// Actor's movies: https://api.themoviedb.org/3/person/287/movie_credits?language=en-US&api_key=630ff3e04b429ffc01f65938c4190e7d'
+// Have Brad Pitt and Edward Norton ever been in a movie together?
+//        URL: /discover/movie?with_people=287,819&sort_by=vote_average.desc
+//Cast and Crew of the movie: /movie/{movie_id}/credits

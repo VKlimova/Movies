@@ -6,14 +6,14 @@ def SearchString1
 if (project.hasProperty('MySearchString1')) {
     SearchString1 = MySearchString1
 } else {
-    SearchString1 = '"' + 'http://www.google.ru/search?q=' +'"'
+    SearchString1 = '"' + 'http://www.google.ru/search?q=' + '"'
 }
 
 def SearchString2
 if (project.hasProperty('MySearchString2')) {
     SearchString2 = MySearchString2
 } else {
-    SearchString2 = '"' + ' movie' +'"'
+    SearchString2 = '"' + ' movie' + '"'
 }
 
 
@@ -46,6 +46,8 @@ android {
 }
 
 dependencies {
+
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
@@ -58,7 +60,10 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.6.0'
     compile 'com.android.support:palette-v7:26.1.0'
     compile 'com.android.support:design:26.1.0'
+    compile 'com.android.support:appcompat-v7:26.1.0'
+    compile 'com.android.support:preference-v7:26.1.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
+
 }
 
 repositories {

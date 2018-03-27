@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="show_cast"
+        android:summaryOff="Hidden"
+        android:summaryOn="Shown"
+        android:title="Show Cast" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="show_rev"
+        android:summaryOff="Hidden"
+        android:summaryOn="Shown"
+        android:title="Show Reviews" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="show_videos"
+        android:summaryOff="Hidden"
+        android:summaryOn="Shown"
+        android:title="Show Youtube links" />
+</PreferenceScreen>

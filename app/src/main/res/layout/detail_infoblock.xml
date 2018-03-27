@@ -1,29 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="10dp">
     <TextView
         android:id="@+id/originalTitle"
         style="@style/DetailText"
         android:textAllCaps="true"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:text="Title Title"
+        />
     <TextView
         android:id="@+id/englishTitle"
-        style="@style/DetailText" />
+        style="@style/DetailText"
+        android:text="English Title"
+        />
     <TextView
         android:id="@+id/releaseDate"
         style="@style/DetailText"
+        android:text="Date: XX-XX-XX"
         android:textStyle="italic" />
 
     <TextView
         android:id="@+id/popularity"
-        style="@style/DetailText" />
-
+        style="@style/DetailText"
+        android:text="Popularity: XXX"/>
     <TextView
-        android:id="@+id/videosTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10dp" />
+        android:id="@+id/castTxt"
+        style="@style/DetailText"
+        android:text="Cast:"/>
+
+<!--<LinearLayout-->
+    <!--android:orientation="vertical"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:gravity="bottom">-->
+    <!--<Button-->
+        <!--android:id="@+id/search_button"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:drawableLeft="@android:drawable/ic_menu_search"-->
+        <!--android:text="@string/search" />-->
+
+    <!--<Button-->
+        <!--android:id="@+id/share_button"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_above="@+id/search_button"-->
+        <!--android:drawableLeft="@android:drawable/ic_menu_share"-->
+        <!--android:text="@string/share" />-->
+<!--</LinearLayout>-->
+
+
 </LinearLayout>

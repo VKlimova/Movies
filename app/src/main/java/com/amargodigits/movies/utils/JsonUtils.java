@@ -5,6 +5,8 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.amargodigits.movies.model.Cast;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
@@ -25,7 +27,7 @@ public class JsonUtils {
     public static int getMovieListStringsFromJson(String rawJsonStr, String pageNum)
             throws JSONException {
 
-        Log.i(LOG_TAG, "JsonUtils getMovieListStringsFromJson pageNum=" + pageNum);
+        Log.i(LOG_TAG, "JsonUtils getMovieListStringsFromJson pageNum=" + pageNum );
         JSONObject rawJson = new JSONObject(rawJsonStr);
         JSONArray moviesJsonArr = rawJson.getJSONArray("results");
         int startIndex;
@@ -54,6 +56,38 @@ public class JsonUtils {
             Log.i(LOG_TAG, "JsonUtils movieList[" +String.valueOf(startIndex + i)+"] = " + movieList.get(startIndex + i).getEnglishTitle() );
         }
        return movieList.size();
+    }
+
+    /** takes as the input raw Json string and returns the Cast array
+     * @param rawJsonStr - raw string with JSON data
+     * @return the array with Cast converted from JSON data
+     */
+    public static Cast[] getCastListStringsFromJson(String rawJsonStr)
+            throws JSONException {
+        Cast[] castList;
+
+        JSONObject rawJson = new JSONObject(rawJsonStr);
+        JSONArray castJsonArr = rawJson.getJSONArray("cast");
+        int castNum;
+
+        // We don't want the entire list of 40+ cast :)
+        if (castJsonArr.length()<8){
+            castNum=castJsonArr.length();
+        } else {
+            castNum=8;
+        }
+        castList = new Cast[castNum];
+
+        for (int i = 0; (i < castNum); i++) {
+            /* Get the JSON object representing the review */
+            JSONObject castObj = castJsonArr.getJSONObject(i);
+            castList[i] = new Cast(
+                    castObj.getString("id"),
+                    castObj.getString("name")
+            );
+            // Log.i(LOG_TAG, "Cast " + i + castList[i].getName());
+        }
+        return castList;
     }
 
     /** takes as the input raw Json string and returns the Review array
