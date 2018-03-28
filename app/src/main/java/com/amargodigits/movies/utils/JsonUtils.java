@@ -1,7 +1,5 @@
 package com.amargodigits.movies.utils;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,8 +8,6 @@ import com.amargodigits.movies.model.Cast;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
-
-import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.movieList;
 
 /**
@@ -26,12 +22,12 @@ class JsonUtils {
             throws JSONException {
         JSONObject rawJson = new JSONObject(rawJsonStr);
         JSONArray moviesJsonArr = rawJson.getJSONArray("results");
-        int startIndex;
-        if (pageNum.equals("1")) {
-            startIndex = 0;
-        } else {
-            startIndex = movieList.size();
-        }
+//        int startIndex;
+//        if (pageNum.equals("1")) {
+//            startIndex = 0;
+//        } else {
+//            startIndex = movieList.size();
+//        }
         for (int i = 0; (i < moviesJsonArr.length()); i++) {
             /* Get the JSON object representing the movie */
             JSONObject movieObj = moviesJsonArr.getJSONObject(i);

@@ -50,7 +50,6 @@
                     android:layout_height="wrap_content"
                     android:drawableStart="@android:drawable/ic_menu_search"
                     android:text="@string/search" />
-
                 <Button
                     android:id="@+id/share_button"
                     android:layout_width="0dp"

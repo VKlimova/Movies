@@ -4,9 +4,7 @@ import android.content.SharedPreferences;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
-import static com.amargodigits.movies.MainActivity.LOG_TAG;
 
 public class SettingsActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener {
