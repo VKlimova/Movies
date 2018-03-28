@@ -16,33 +16,25 @@ import static com.amargodigits.movies.MainActivity.movieList;
 
 /**
  * JSONUtils to work with JSON data
- *
  */
 
-public class JsonUtils {
+class JsonUtils {
     /** takes as the input raw Json string, fills in the movieList[] array, and returns the length of the array
      * @param rawJsonStr - raw string with JSON data
-     * @return the number of string converted to movieList array from JSON data
      */
-    public static int getMovieListStringsFromJson(String rawJsonStr, String pageNum)
+    public static void getMovieListStringsFromJson(String rawJsonStr, String pageNum)
             throws JSONException {
-
-        Log.i(LOG_TAG, "JsonUtils getMovieListStringsFromJson pageNum=" + pageNum );
         JSONObject rawJson = new JSONObject(rawJsonStr);
         JSONArray moviesJsonArr = rawJson.getJSONArray("results");
         int startIndex;
-        if (pageNum=="1") {
+        if (pageNum.equals("1")) {
             startIndex = 0;
-           // movieList = new Movie[moviesJsonArr.length()];
         } else {
             startIndex = movieList.size();
-  //          movieList = (Movie[]) resizeArray(movieList, (movieList.size()+moviesJsonArr.length()));
         }
-        Log.i(LOG_TAG, "JsonUtils getMovieListStringsFromJson startIndex=" + startIndex);
         for (int i = 0; (i < moviesJsonArr.length()); i++) {
             /* Get the JSON object representing the movie */
             JSONObject movieObj = moviesJsonArr.getJSONObject(i);
-//            movieList[startIndex + i] = new Movie(
             movieList.add(new Movie(
                     movieObj.getString("original_title"),
                     movieObj.getString("title"),
@@ -53,9 +45,7 @@ public class JsonUtils {
                     movieObj.getInt("id")
                     )
             );
-            Log.i(LOG_TAG, "JsonUtils movieList[" +String.valueOf(startIndex + i)+"] = " + movieList.get(startIndex + i).getEnglishTitle() );
         }
-       return movieList.size();
     }
 
     /** takes as the input raw Json string and returns the Cast array
@@ -85,7 +75,6 @@ public class JsonUtils {
                     castObj.getString("id"),
                     castObj.getString("name")
             );
-            // Log.i(LOG_TAG, "Cast " + i + castList[i].getName());
         }
         return castList;
     }
@@ -133,23 +122,4 @@ public class JsonUtils {
         }
         return videoList;
     }
-
-    /**
-     * Origin: http://www.source-code.biz/snippets/java/3.htm
-     *
-     * Reallocates an array with a new size, and copies the contents
-     * of the old array to the new array.
-     * @param oldArray  the old array, to be reallocated.
-     * @param newSize   the new array size.
-     * @return          A new array with the same contents.
-     */
-    private static Object resizeArray (Object oldArray, int newSize) {
-        int oldSize = java.lang.reflect.Array.getLength(oldArray);
-        Class elementType = oldArray.getClass().getComponentType();
-        Object newArray = java.lang.reflect.Array.newInstance(
-                elementType, newSize);
-        int preserveLength = Math.min(oldSize, newSize);
-        if (preserveLength > 0)
-            System.arraycopy(oldArray, 0, newArray, 0, preserveLength);
-        return newArray; }
 }

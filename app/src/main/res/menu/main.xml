@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/sort_popular"
         android:icon="@android:drawable/ic_menu_myplaces"
@@ -15,15 +14,15 @@
         app:showAsAction="always" />
     <item
         android:id="@+id/sort_liked"
-        android:title="Liked"
+        android:title="@string/menu_liked"
         android:icon="@android:drawable/btn_star_big_off"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/settings"
         android:icon="@android:drawable/ic_menu_preferences"
-        android:title="Settings"
-        app:showAsAction="ifRoom" />
+        android:title="@string/menu_settings"
+        app:showAsAction="always" />
 
     <!--android:icon="@drawable/heart"
     android:icon="@android:drawable/ic_input_get"

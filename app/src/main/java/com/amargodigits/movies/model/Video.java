@@ -4,18 +4,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by vklimova on 21.02.18.
  * This module contains Video object description, that holds data for one Video
  */
 
-// {"id":"571cb2c0c3a36843150006ed",
-// "iso_639_1":"en",
-// "iso_3166_1":"US",
-// "key":"zQ2XkyDTW34",
-// "name":"Have a Donut",
-// "site":"YouTube",
-// "size":1080,
-// "type":"Clip"}
 
 public class Video implements Parcelable {
     private String iso_639_1;
@@ -45,8 +36,8 @@ public class Video implements Parcelable {
     }
 
 
-    public Video(Parcel in) {
-        String[] data = new String[6];
+    private Video(Parcel in) {
+        String[] data = new String[8];
         in.readStringArray(data);
         this.iso_639_1 = data[0];
         this.iso_3166_1 = data[1];

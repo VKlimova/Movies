@@ -3,6 +3,7 @@ package com.amargodigits.movies;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -11,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
@@ -18,7 +20,6 @@ import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -35,14 +36,13 @@ import com.amargodigits.movies.model.Video;
 import com.amargodigits.movies.utils.NetworkUtils;
 import com.squareup.picasso.Picasso;
 
-import java.util.zip.Inflater;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.mAdapter;
-import static com.amargodigits.movies.MainActivity.mRecyclerView;
 import static com.amargodigits.movies.MainActivity.mSharedPref;
 import static com.amargodigits.movies.MainActivity.movieList;
 import static com.amargodigits.movies.data.MovieContract.MovieEntry.*;
@@ -55,12 +55,13 @@ public class DetailActivity extends AppCompatActivity {
     public static TextView reviewsTxt;
     public static TextView castTxt;
     public static Context mContext;
+    public static String strReviews;
     SQLiteDatabase mDb;
     static Toolbar toolbar;
-    int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
+    final int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
     final Movie mMovie = movieList.get(moviePosition);
     Drawable starDrawable;
-
+    SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,15 +71,12 @@ public class DetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.i(LOG_TAG, "DetailActivity onCreate Exception1 :" + e.toString());
         }
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        getSupportActionBar().setHomeButtonEnabled(true);
-
+        strReviews = this.getString(R.string.reviews_lbl);
         mContext = getApplicationContext();
         ButterKnife.bind(this);
-
-        Log.i(LOG_TAG, "moviePosition= " + moviePosition + " mMovie=" + mMovie.getOriginalTitle());
+        sp = PreferenceManager.getDefaultSharedPreferences(this);
         populateUI(mMovie);
         try {
             // Create a DB helper (this will create the DB if run for the first time)
@@ -90,19 +88,24 @@ public class DetailActivity extends AppCompatActivity {
         reviewsTxt = findViewById(R.id.reviewsTxt);
         videosTxt = findViewById(R.id.videosTxt);
         castTxt = findViewById(R.id.castTxt);
-
         if (isOnline(getApplicationContext())) {
             try {
-                NetworkUtils.LoadReviewsTask mRAsyncTasc = new NetworkUtils.LoadReviewsTask(getApplicationContext());
-                mRAsyncTasc.execute(mMovie.getId());
-
-                NetworkUtils.LoadVideosTask mVAsyncTasc = new NetworkUtils.LoadVideosTask(getApplicationContext());
-                mVAsyncTasc.execute(mMovie.getId());
-
-                NetworkUtils.LoadCastTask mCAsyncTasc = new NetworkUtils.LoadCastTask(getApplicationContext());
-                mCAsyncTasc.execute(mMovie.getId());
-
-
+                Boolean show_rev = sp.getBoolean("show_rev", true);
+                if (show_rev) {
+                    NetworkUtils.LoadReviewsTask mRAsyncTask = new NetworkUtils.LoadReviewsTask(getApplicationContext());
+                    mRAsyncTask.execute(mMovie.getId());
+                }
+                Boolean show_videos = sp.getBoolean("show_videos", true);
+                if (show_videos)
+                {
+                    NetworkUtils.LoadVideosTask mVAsyncTask = new NetworkUtils.LoadVideosTask(getApplicationContext());
+                    mVAsyncTask.execute(mMovie.getId());
+                }
+                Boolean show_cast = sp.getBoolean("show_cast", true);
+                if (show_cast) {
+                    NetworkUtils.LoadCastTask mCAsyncTask = new NetworkUtils.LoadCastTask(getApplicationContext());
+                    mCAsyncTask.execute(mMovie.getId());
+                }
             } catch (Exception e) {
                 Log.i(LOG_TAG, e.toString());
             }
@@ -121,16 +124,10 @@ public class DetailActivity extends AppCompatActivity {
                 .appendPath("p")
                 .appendPath("w185")
                 .appendPath(mMovie.getPosterPath());
-
-//        Picasso.with(this).setIndicatorsEnabled(true);
-
         Picasso.with(this).load(builder.build().toString())
                 .placeholder(android.R.drawable.stat_sys_download)
                 .error(android.R.drawable.ic_menu_report_image)
                 .into(image_iv);
-
-//        if (mMovie.getUnLiking()) { image_iv.setAlpha(0.5f); }
-
         setTitle(mMovie.getOriginalTitle());
     }
 
@@ -156,7 +153,6 @@ public class DetailActivity extends AppCompatActivity {
 
     /**
      * Shows the movie information on the screen
-     *
      * @param movie The details on the movie
      */
 
@@ -172,29 +168,25 @@ public class DetailActivity extends AppCompatActivity {
         if (movie.getOriginalTitle().length() == movie.getEnglishTitle().length()) {
             englishTitle.setVisibility(View.GONE);
         }
-
-
-        Log.i(LOG_TAG, "BuildConfig.SEARCH_STRING_1 = " + BuildConfig.SEARCH_STRING_1);
-        if ((BuildConfig.SEARCH_STRING_1.contains("http://")) || (BuildConfig.SEARCH_STRING_1.contains("htts://"))) {
-
-            linkTitle = BuildConfig.SEARCH_STRING_1 + movie.getEnglishTitle() + BuildConfig.SEARCH_STRING_2;
-            Log.i(LOG_TAG, "Opening from BuildConfig: " + linkTitle);
-//            Uri.Builder builder = new Uri.Builder();
-//            builder.scheme("https")
-//                    .authority("www.google.ru")
-//                    .appendPath("search")
-//                    .appendQueryParameter("q", movie.getEnglishTitle());
-//            String myUrl = builder.build().toString();
-//            Log.i(LOG_TAG, "builder.scheme " + myUrl);
-
-
-        } else {
-
-            linkTitle = "https://www.google.ru/search?q=" + movie.getEnglishTitle() + " " + BuildConfig.SEARCH_STRING_2;
-            Log.i(LOG_TAG, "Opening default: " + linkTitle);
-
+        String searchString1, searchString2;
+        try
+        {
+            sp.contains("search1");
+        } catch (Exception e) {
+            Log.i(LOG_TAG, " populateUI Exception - " + e.toString());
         }
-        Log.i(LOG_TAG, "DetailActivity linkTitle = " + linkTitle);
+        if (sp.contains("search1")){
+            searchString1 = sp.getString("search1","");
+            searchString2 = sp.getString("search2","");
+        } else {
+            searchString1 = BuildConfig.SEARCH_STRING_1;
+            searchString2 = BuildConfig.SEARCH_STRING_2;
+        }
+        if ((searchString1.contains("http://")) || (searchString1.contains("htts://"))) {
+            linkTitle = searchString1 + movie.getEnglishTitle() + searchString2;
+        } else {
+            linkTitle = "https://www.google.ru/search?q=" + movie.getEnglishTitle() + " " + BuildConfig.SEARCH_STRING_2;
+        }
         search_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -217,13 +209,6 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
-
-    public void populateSearchBtn() {
-
-
-    }
-
-
     /**
      * Populates the REVIEWS list on the screen
      *
@@ -240,15 +225,14 @@ public class DetailActivity extends AppCompatActivity {
         reviewsTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String strReviews = "Reviews: ";
                 String strShow = " <Show reviews> \n\n";
                 String strHide = " <Hide reviews> \n\n";
                 if (reviewsTxt.getText().toString().contains(strHide)) {
                     reviewsTxt.setText(strReviews);
-                    reviewsTxt.append(reviews.length + strShow);
+                    reviewsTxt.append(Objects.requireNonNull(reviews).length + strShow);
                 } else {
-                    reviewsTxt.setText("Reviews: ");
-                    reviewsTxt.append(reviews.length + strHide);
+                    reviewsTxt.setText(strReviews);
+                    reviewsTxt.append(Objects.requireNonNull(reviews).length + strHide);
                     for (Review review : reviews) {
                         reviewsTxt.append("===\n");
                         reviewsTxt.append(review.getAuthor() + "\n");
@@ -261,59 +245,32 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     /**
-     * Populates the CAST list on the screen
-     *
+     * Populates the CAST list on the screen*
      * @param castAr The array with the reviews
      */
-    public static SpannableStringBuilder castSpan = new SpannableStringBuilder();
 
     public static void addCast(Cast[] castAr) {
         castTxt.setText("\nCast:\n");
         for (Cast cast : castAr) {
                 castTxt.append("* " + cast.getName() + "\n");
             }
-
-//        castSpan.clear();
-//        castSpan.append("Cast: ");
-//        if (castAr == null) {
-//            castSpan.append("No cast in base");
-//        } else {
-//            castSpan.append(castAr.length + "\n\n");
-//            for (Cast cast : castAr) {
-//                singleTextView(castTxt, "> ", cast.getName() + " ", "");
-////                singleTextView(videosTxt, "> ", cast.getName() + " ", buildYoutubeUrl(cast.getKey()).toString());
-//            }
-//        }
     }
-
-
-
+    public static final SpannableStringBuilder spanText = new SpannableStringBuilder();
     /**
      * Populates the VIDEOS list on the screen
-     *
      * @param videosAr The array with the reviews
      */
-    public static SpannableStringBuilder spanText = new SpannableStringBuilder();
-
     public static void addVideos(Video[] videosAr) {
         spanText.clear();
         spanText.append("Videos: ");
         if (videosAr == null) {
             spanText.append("No videos in base");
         } else {
-            spanText.append(videosAr.length + "\n\n");
+            spanText.append(String.valueOf(videosAr.length)).append("\n\n");
             for (Video video : videosAr) {
                 singleTextView(videosTxt, "> ", video.getName() + " ", buildYoutubeUrl(video.getKey()).toString());
             }
         }
-    }
-
-    /**
-     * Show the Toast with error and close
-     */
-    private void closeOnError() {
-        finish();
-        Toast.makeText(this, R.string.error_message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -326,7 +283,7 @@ public class DetailActivity extends AppCompatActivity {
 
     /**
      * Supplementary method used to populates the VIDEOS list on the screen
-     * adds Spanable strings to textView
+     * adds Spannable strings to textView
      * Inspired by:
      * https://gist.github.com/anuragdhunna/5aa36b2fb6e97bcaebca1a3bf20787d3#file-singletextview-java
      *
@@ -350,29 +307,12 @@ public class DetailActivity extends AppCompatActivity {
 
             @Override
             public void updateDrawState(TextPaint textPaint) {
-                textPaint.setColor(textPaint.linkColor);    // you can use custom color
+                textPaint.setColor(textPaint.linkColor);
                 textPaint.setUnderlineText(false);    // this remove the underline
             }
         }, spanText.length() - revName.length(), spanText.length(), 0);
 
         spanText.append("\n");
-
-//        spanText.setSpan(new ClickableSpan() {
-//            @Override
-//            public void onClick(View widget) {
-//
-//                // On Click Action
-//                Toast.makeText(mContext, "Span 2 clicked", Toast.LENGTH_LONG).show();
-//
-//            }
-//
-//            @Override
-//            public void updateDrawState(TextPaint textPaint) {
-//                textPaint.setColor(textPaint.linkColor);    // you can use custom color
-//                textPaint.setUnderlineText(false);    // this remove the underline
-//            }
-//        },spanText.length() - revUrl.length(), spanText.length(), 0);
-
         textView.setMovementMethod(LinkMovementMethod.getInstance());
         textView.setText(spanText, TextView.BufferType.SPANNABLE);
 
@@ -391,7 +331,6 @@ public class DetailActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.like)
             try {
-//            Toast.makeText(this, "Saving ..."  + mMovie.getOriginalTitle()  , Toast.LENGTH_LONG).show();
                 likeMovieClick(mMovie);
             } catch (Exception e) {
                 Log.i(LOG_TAG, "like Exception: " + e.toString());
@@ -399,46 +338,32 @@ public class DetailActivity extends AppCompatActivity {
         return true;
     }
 
-    private long likeMovieClick(Movie movie) {
-        long result;
-//        String selection = MovieContract.MovieEntry.COLUMN_FILM_ID + "=" + movie.getId();
-//        Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, null, selection, null, null, null, null);
-//        int count = cursor.getCount();
-        ImageView image_iv = findViewById(R.id.image_iv);
+    private void likeMovieClick(Movie movie) {
 
         if (iLikeMovie(movie.getId())) {
-            result = unLikeMovie(movie);
+             unLikeMovie(movie);
         } else {
-            result = likeMovie(movie);
+            likeMovie(movie);
         }
         setStarColor();
-
-        Log.i(LOG_TAG, "DetailActivity likeMovieClick mAdapter.notifyDataSetChanged();");
-        return result;
     }
-
 
     /** iLikeMovie checks if the movie is liked
      * @param id -  film id
      * @return true if movie is liked, false if not
      **/
-
     private boolean iLikeMovie(int id) {
         String selection = MovieContract.MovieEntry.COLUMN_FILM_ID + "=" + id;
         Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, null, selection, null, null, null, null);
         int count = cursor.getCount();
-        if (count == 0) {
-            return false;
-        } else {
-            return true;
-        }
+        cursor.close();
+        return count != 0;
     }
 
     /** likeMovie insert the record with "movie" to mDb
      * @param movie -  film
      * @return the number of inserted records
      **/
-
     private long likeMovie(Movie movie) {
         ContentValues cv = new ContentValues();
         cv.put(COLUMN_ENGLISH_TITLE, movie.getEnglishTitle());
@@ -448,11 +373,7 @@ public class DetailActivity extends AppCompatActivity {
         cv.put(COLUMN_POSTER_PATH, movie.getPosterPath());
         cv.put(COLUMN_RELEASE_DATE, movie.getReleaseDate());
         cv.put(COLUMN_FILM_ID, movie.getId());
-//        Toast.makeText(this, "Saving: " + cv.getAsString(COLUMN_ORIGINAL_TITLE), Toast.LENGTH_LONG).show();
-        long ret =  mDb.insert(TABLE_NAME, null, cv);
-//        NetworkUtils.LoadDataTask mAsyncTask = new NetworkUtils.LoadDataTask(getApplicationContext());
-//        mAsyncTask.execute("liked","0");
-        return ret;
+        return  mDb.insert(TABLE_NAME, null, cv);
     }
 
     /** unLikeMovie delete the record with "movie" from mDb
@@ -461,14 +382,11 @@ public class DetailActivity extends AppCompatActivity {
      **/
 
     private long unLikeMovie(Movie movie) {
-//        Toast.makeText(this, "Unliking: " + movie.getOriginalTitle(), Toast.LENGTH_LONG).show();
         movie.unLike();
         String deleteSql = COLUMN_FILM_ID + "=" + movie.getId();
         long ret = mDb.delete(TABLE_NAME, deleteSql, null);
             movieList.remove(movie);
             mAdapter.notifyDataSetChanged();
-//        NetworkUtils.LoadDataTask mAsyncTask = new NetworkUtils.LoadDataTask(getApplicationContext());
-//        mAsyncTask.execute("liked","0");
         return ret;
     }
 
@@ -491,22 +409,6 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         // do something on back.
-        Log.i(LOG_TAG, "DetailActivity onBackPressed");
         super.onBackPressed();
-        return;
     }
 }
-
-// DONE 1: Кнопку Share - easy
-// TODO 2: Save to Google Drive account - difficult
-// DONE 3: Fix bug with endless scroll
-// DONE 4: endless scroll - difficult
-// TODO 5: Preferencies to set search strings and share strings - difficult
-// Postponed 6: Collapse many Videos - easy
-// DONE 7: stars in Main and Detail should be different - easy
-// TODO 8: languages: https://api.themoviedb.org/3/movie/76341?api_key=<<api_key>>&language=ru - with p.5
-//  ... 8: https://api.themoviedb.org/3/configuration/languages?api_key=...&callback=
-// Actor's movies: https://api.themoviedb.org/3/person/287/movie_credits?language=en-US&api_key=630ff3e04b429ffc01f65938c4190e7d'
-// Have Brad Pitt and Edward Norton ever been in a movie together?
-//        URL: /discover/movie?with_people=287,819&sort_by=vote_average.desc
-//Cast and Crew of the movie: /movie/{movie_id}/credits

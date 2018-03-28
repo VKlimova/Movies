@@ -29,11 +29,11 @@ import static com.amargodigits.movies.MainActivity.mSharedPref;
  */
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
     private ArrayList <Movie> mDataset;
-    public  Context mContext;
+    private Context mContext;
     // Provide a reference to the views for each data item
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public ImageView mImage;
-        public ViewHolder(ImageView v) {
+        ImageView mImage;
+        ViewHolder(ImageView v) {
             super(v);
             mImage = v;
         }
@@ -94,7 +94,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     public int getItemCount() {
         return mDataset.size();
     }
-
 
    //
    // The example for this function is taken from stackOverflow

@@ -11,7 +11,7 @@
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize" />
+        android:layout_height="?android:attr/actionBarSize" />
     <ScrollView
         android:id="@+id/mainScroll"
         android:layout_width="fill_parent"
@@ -48,7 +48,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:drawableLeft="@android:drawable/ic_menu_search"
+                    android:drawableStart="@android:drawable/ic_menu_search"
                     android:text="@string/search" />
 
                 <Button
@@ -56,8 +56,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:layout_above="@+id/search_button"
-                    android:drawableLeft="@android:drawable/ic_menu_share"
+                    android:drawableStart="@android:drawable/ic_menu_share"
                     android:text="@string/share" />
             </LinearLayout>
             <TextView

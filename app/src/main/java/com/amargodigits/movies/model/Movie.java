@@ -4,7 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by vklimova on 21.02.18.
  * This module contains Movie object description, that holds data for one Movie
  */
 
@@ -30,9 +29,9 @@ public class Movie implements Parcelable {
       this.unLiking = false;
     }
 
-    public Movie(Parcel in)
+    private Movie(Parcel in)
     {
-        String[] data = new String[6];
+        String[] data = new String[7];
         in.readStringArray(data);
         this.originalTitle = data[0];
         this.overview = data[1];

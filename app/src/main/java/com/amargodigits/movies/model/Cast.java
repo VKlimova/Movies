@@ -4,8 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by vklimova on 21.02.18.
- * This module contains Review object description, that holds data for one Movie
+ * This module contains Cast object description, that holds data for one Cast person
  */
 
 public class Cast implements Parcelable {
@@ -18,7 +17,7 @@ public class Cast implements Parcelable {
         this.name = name;
     }
 
-    public Cast(Parcel in)
+    private Cast(Parcel in)
     {
         String[] data = new String[2];
         in.readStringArray(data);

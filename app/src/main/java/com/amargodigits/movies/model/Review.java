@@ -4,8 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by vklimova on 21.02.18.
- * This module contains Review object description, that holds data for one Movie
+ * This module contains Review object description, that holds data for one Review
  */
 
 public class Review implements Parcelable {
@@ -18,7 +17,7 @@ public class Review implements Parcelable {
         this.content = content;
     }
 
-    public Review(Parcel in)
+    private Review(Parcel in)
     {
         String[] data = new String[2];
         in.readStringArray(data);

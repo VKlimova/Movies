@@ -13,15 +13,10 @@ import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.movieList;
 import static com.amargodigits.movies.data.MovieContract.MovieEntry.*;
 
-
-/**
- * Created by vklimova on 12.03.18.
- */
-
 public class MovieDbHelper extends SQLiteOpenHelper {
 
     // The database name
-    public static final String DATABASE_NAME = "movies.db";
+    private static final String DATABASE_NAME = "movies.db";
 
     // If you change the database schema, you must increment the database version
     private static final int DATABASE_VERSION = 1;
@@ -51,17 +46,12 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * takes as the input some string, fills in the movieList[] array, and returns the length of the array
-     *
-     * @param someStr - some string
-     * @return the number of string converted to movieList array from SQLite database
+     * Fills in the movieList[] array, and returns the length of the array
      */
-    public static int makeMovieArrayFromSQLite(SQLiteDatabase sqLiteDatabase, String someStr)
+    public static void makeMovieArrayFromSQLite(SQLiteDatabase sqLiteDatabase)
             {
-
 // This projection  specifies which columns from the database
 // we will actually use in this query.
-
         String[] projection = {
                 MovieEntry.COLUMN_ENGLISH_TITLE,
                 MovieEntry.COLUMN_FILM_ID,
@@ -73,31 +63,26 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         };
 
         String sortOrder = MovieEntry.COLUMN_RELEASE_DATE + " DESC";
-        Cursor cursor = sqLiteDatabase.query(MovieEntry.TABLE_NAME, projection, null, null, null, null, sortOrder);
-//        int count = cursor.getCount();
-//        movieList = new Movie[count];
-        int i=0;
-        try {
-            while (cursor.moveToNext()) {
+                int i=0;
+                try (Cursor cursor = sqLiteDatabase.query(MovieEntry.TABLE_NAME, projection, null, null, null, null, sortOrder)) {
+                    while (cursor.moveToNext()) {
 
-               try { movieList.add( new Movie(
-                        cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)),
-                        cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ENGLISH_TITLE)),
-                        cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_OVERVIEW)),
-                        cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_POSTER_PATH)),
-                        cursor.getFloat(cursor.getColumnIndex(MovieEntry.COLUMN_POPULARITY)),
-                        cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_RELEASE_DATE)),
-                        cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FILM_ID))
-                        )
-                );} catch (Exception e) {
-                   Log.i(LOG_TAG, "makeMovieArrayFromSQLite Exception = " +e.toString());
-               }
-                i++;
-                Log.i(LOG_TAG, "makeMovieArrayFromSQLite " + i +". "+ cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)));
-            }
-        } finally {
-            cursor.close();
-        }
-        return movieList.size();
+                        try {
+                            movieList.add(new Movie(
+                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)),
+                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ENGLISH_TITLE)),
+                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_OVERVIEW)),
+                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_POSTER_PATH)),
+                                            cursor.getFloat(cursor.getColumnIndex(MovieEntry.COLUMN_POPULARITY)),
+                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_RELEASE_DATE)),
+                                            cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FILM_ID))
+                                    )
+                            );
+                        } catch (Exception e) {
+                            Log.i(LOG_TAG, "makeMovieArrayFromSQLite Exception = " + e.toString());
+                        }
+                        i++;
+                    }
+                }
     }
 }

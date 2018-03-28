@@ -9,27 +9,23 @@
         style="@style/DetailText"
         android:textAllCaps="true"
         android:textStyle="bold"
-        android:text="Title Title"
         />
     <TextView
         android:id="@+id/englishTitle"
         style="@style/DetailText"
-        android:text="English Title"
         />
     <TextView
         android:id="@+id/releaseDate"
         style="@style/DetailText"
-        android:text="Date: XX-XX-XX"
         android:textStyle="italic" />
 
     <TextView
         android:id="@+id/popularity"
-        style="@style/DetailText"
-        android:text="Popularity: XXX"/>
+        style="@style/DetailText" />
     <TextView
         android:id="@+id/castTxt"
         style="@style/DetailText"
-        android:text="Cast:"/>
+        />
 
 <!--<LinearLayout-->
     <!--android:orientation="vertical"-->

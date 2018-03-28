@@ -7,7 +7,7 @@
         android:checkable="true"
         android:enabled="true"
         android:icon="@android:drawable/btn_star_big_off"
-        android:title="like"
+        android:title="@string/menu_liked"
         android:visible="true"
         app:showAsAction="always" />
 </menu>

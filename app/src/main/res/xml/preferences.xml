@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:defaultValue="@string/google1"
+        android:key="search1"
+        android:summary="@string/search1"
+        android:title="@string/search1"
+        />
+    <EditTextPreference
+        android:defaultValue="@string/google2"
+        android:key="search2"
+        android:summary="@string/search2"
+        android:title="@string/search2"
+        />
+
+    <EditTextPreference
+        android:defaultValue="@string/en"
+        android:key="language"
+        android:summary="@string/languageSum"
+        android:title="@string/language"
+        />
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="show_cast"

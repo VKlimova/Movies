@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -15,33 +16,25 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.TextView;
 import android.widget.Toast;
-
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.utils.EndlessRecyclerViewScrollListener;
 import com.amargodigits.movies.utils.MovieAdapter;
 import com.amargodigits.movies.utils.NetworkUtils.LoadDataTask;
-
 import java.util.ArrayList;
-
 import static com.amargodigits.movies.DetailActivity.mContext;
 import static com.amargodigits.movies.utils.MovieAdapter.gridColumnsNumber;
 import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
 
 public class MainActivity extends AppCompatActivity {
-    public static String LOG_TAG = "Movies Log";
+    public static final String LOG_TAG = "Movies Log";
     public static ArrayList <Movie> movieList = new ArrayList<>();
     public static RecyclerView mRecyclerView;
-    //    public static TextView mPopularItem;
-//    public static TextView mTopratedItem;
     public String sortOrder;
-    public static SharedPreferences mSharedPref;
+    public static SharedPreferences mSharedPref, mSp;
     static MovieAdapter mAdapter;
-    public static RecyclerView.LayoutManager mLayoutManager;
     static Toolbar mainToolbar;
     Menu mMenu;
-    private static EndlessRecyclerViewScrollListener scrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,15 +42,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mRecyclerView = findViewById(R.id.movie_rv);
         mSharedPref = getPreferences(Context.MODE_PRIVATE);
+        mSp = PreferenceManager.getDefaultSharedPreferences(this);
         sortOrder = mSharedPref.getString("SORT", "popular");
-        Log.i(LOG_TAG, "MainActivity onCreate sortOrder = " + sortOrder);
         if (!( sortOrder.contains("liked") || sortOrder.contains("top_rated") || sortOrder.contains("popular") )) {
             sortOrder = "top_rated";
         }
-        mainToolbar = (Toolbar) findViewById(R.id.mainToolbar);
+        mainToolbar =  findViewById(R.id.mainToolbar);
         mainToolbar.setTitle(makeTitle(sortOrder));
         setSupportActionBar(mainToolbar);
-
         if (sortOrder.contains("liked")) {
             LoadDataTask mLikedAsyncTask = new LoadDataTask(getApplicationContext());
             mLikedAsyncTask.execute("liked","0");
@@ -74,9 +66,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     public static void doRecView(Context tContext, final String sortOrder, String pageN) {
-        Log.i(LOG_TAG, "MainActivity doRecView pageN="+pageN);
         if (sortOrder.contains("liked")){
             mAdapter = new MovieAdapter(tContext, movieList);
             mRecyclerView.setHasFixedSize(true);
@@ -86,63 +76,44 @@ public class MainActivity extends AppCompatActivity {
             mRecyclerView.setAdapter(mAdapter);
             return;
         }
-
         // For the zero page we create the mAdapter and mLayoutManager
-
-        if (pageN=="0") {
+        if (pageN.equals("0")) {
             mAdapter = new MovieAdapter(tContext, movieList);
             mRecyclerView.setHasFixedSize(true);
             GridLayoutManager mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
             mainToolbar.setTitle(makeTitle(sortOrder));
             mRecyclerView.setLayoutManager(mLayoutManager);
                 // Retain an instance so that you can call `resetState()` for fresh searches
-                scrollListener = new EndlessRecyclerViewScrollListener(mLayoutManager) {
-                    @Override
-                    public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                        Log.i(LOG_TAG, "MainActivity onLoadMore");
-                        // Triggered only when new data needs to be appended to the list
-                        // Add whatever code is needed to append new items to the bottom of the list
-                        loadNextDataFromApi(sortOrder, page);
-                    }
-                };
+            EndlessRecyclerViewScrollListener scrollListener = new EndlessRecyclerViewScrollListener(mLayoutManager) {
+                @Override
+                public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                    // Triggered only when new data needs to be appended to the list
+                    // Add whatever code is needed to append new items to the bottom of the list
+                    loadNextDataFromApi(sortOrder, page);
+                }
+            };
                 // Adds the scroll listener to RecyclerView
                 mRecyclerView.addOnScrollListener(scrollListener);
                 mRecyclerView.setAdapter(mAdapter);
     } else {
-
             mAdapter.notifyItemInserted(mAdapter.getItemCount()+1);
             mAdapter.notifyItemInserted(mAdapter.getItemCount()+2);
             mAdapter.notifyItemInserted(mAdapter.getItemCount()+3);
             mAdapter.notifyItemInserted(mAdapter.getItemCount()+4);
-
-    //       mAdapter.notifyItemRangeInserted(mAdapter.getItemCount(), movieList.length );
-
-        //    mAdapter = new MovieAdapter(tContext, movieList);
-            Log.i(LOG_TAG, "movieList.length=" + movieList.size());
-            Log.i(LOG_TAG, "mAdapter.getItemCount()=" +mAdapter.getItemCount());
-
-//           mRecyclerView.setAdapter(mAdapter);
-//           mRecyclerView.smoothScrollToPosition(movieList.length);
-
         }
     }
 
     // Append the next page of data into the adapter
     // This method probably sends out a network request and appends new data items to your adapter.
     public static void loadNextDataFromApi(String sortOrder, int offset) {
-        Log.i(LOG_TAG, "MainActivity loadNextDataFromApi sortOrder=" + sortOrder + " offset=" + offset);
         LoadDataTask mAsyncTasc = new LoadDataTask(mContext);
         String pageN = offset + "";
-        Log.i(LOG_TAG, "MainActivity loadNextDataFromApi offset pageN=" + pageN);
         try {
             mAsyncTasc.execute(sortOrder, pageN);
-
-            Log.i(LOG_TAG, "MainActivity loadNextDataFromApi mAsyncTasc.execute("+sortOrder +", " + pageN + ")");
         }catch (Exception e) {
             Log.i(LOG_TAG, "MainActivity loadNextDataFromApi Exception "+ e.toString());
         }
         mAdapter.notifyDataSetChanged();
-        Log.i(LOG_TAG, "MainActivity loadNextDataFromApi mAdapter.notifyDataSetChanged();");
         // Send an API request to retrieve appropriate paginated data
         //  --> Send the request including an offset value (i.e `page`) as a query parameter.
         //  --> Deserialize and construct new model objects from the API response
@@ -174,10 +145,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void colorMenu(String sortOrder) {
-//        mSharedPref = getPreferences(Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = mSharedPref.edit();
-//        editor.putString("SORT", sortOrder);
-//        editor.apply();
         Drawable likedDrawable = mMenu.findItem(R.id.sort_liked).getIcon();
         Drawable popularDrawable = mMenu.findItem(R.id.sort_popular).getIcon();
         Drawable top_ratedDrawable = mMenu.findItem(R.id.sort_toprated).getIcon();
@@ -202,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     /**
      * Callback invoked when a menu item was selected from this Activity's menu.
      *
@@ -255,9 +221,8 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
     private static String makeTitle(String sortOrder) {
         sortOrder = sortOrder.replace("_", " ");
-        return sortOrder.substring(0, 1).toUpperCase() + sortOrder.substring(1) + " movies";
+        return sortOrder.substring(0, 1).toUpperCase() + sortOrder.substring(1) ;
     }
 }

@@ -2,9 +2,6 @@ package com.amargodigits.movies.data;
 
 import android.provider.BaseColumns;
 
-/**
- * Created by vklimova on 12.03.18.
- */
 
 public  class MovieContract {
     public static final class MovieEntry implements BaseColumns{
