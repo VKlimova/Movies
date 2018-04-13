@@ -34,6 +34,8 @@ import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
 import com.amargodigits.movies.utils.NetworkUtils;
+import com.amargodigits.movies.LikedMoviesProvider;
+
 import com.squareup.picasso.Picasso;
 
 import java.util.Objects;
@@ -56,7 +58,7 @@ public class DetailActivity extends AppCompatActivity {
     public static TextView castTxt;
     public static Context mContext;
     public static String strReviews;
-    SQLiteDatabase mDb;
+//    SQLiteDatabase mDb;
     static Toolbar toolbar;
     final int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
     final Movie mMovie = movieList.get(moviePosition);
@@ -80,8 +82,20 @@ public class DetailActivity extends AppCompatActivity {
         populateUI(mMovie);
         try {
             // Create a DB helper (this will create the DB if run for the first time)
-            MovieDbHelper dbHelper = new MovieDbHelper(this);
-            mDb = dbHelper.getWritableDatabase();
+//            MovieDbHelper dbHelper = new MovieDbHelper(this);
+//            mDb = dbHelper.getWritableDatabase();
+
+//// Content provider starts
+//            // Queries the user dictionary and returns results
+//            Cursor mCursor;
+//            mCursor = getContentResolver().query(
+//                    LikedMoviesProvider.URI_MOVIE_ID,   // The content URI of the words table
+//                    mProjection,                        // The columns to return for each row
+//                    mSelectionClause                    // Selection criteria
+//                    mSelectionArgs,                     // Selection criteria
+//                    mSortOrder);                        // The sort order for the returned rows
+//
+
         } catch (Exception e) {
             Log.i(LOG_TAG, "DetailActivity Exception " + e.toString());
         }
@@ -354,7 +368,11 @@ public class DetailActivity extends AppCompatActivity {
      **/
     private boolean iLikeMovie(int id) {
         String selection = MovieContract.MovieEntry.COLUMN_FILM_ID + "=" + id;
-        Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, null, selection, null, null, null, null);
+    //        Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, null, selection, null, null, null, null);
+   //     Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, null, selection, null, null, null, null);
+        Cursor cursor = getContentResolver().query(
+                LikedMoviesProvider.LIKED_MOVIE_URI.buildUpon().appendPath(String.valueOf(id)).build(),
+                null, null, null, null);
         int count = cursor.getCount();
         cursor.close();
         return count != 0;
@@ -365,6 +383,8 @@ public class DetailActivity extends AppCompatActivity {
      * @return the number of inserted records
      **/
     private long likeMovie(Movie movie) {
+        Log.i(LOG_TAG, "likeMovie: " +movie.getEnglishTitle());
+
         ContentValues cv = new ContentValues();
         cv.put(COLUMN_ENGLISH_TITLE, movie.getEnglishTitle());
         cv.put(COLUMN_ORIGINAL_TITLE, movie.getOriginalTitle());
@@ -373,7 +393,11 @@ public class DetailActivity extends AppCompatActivity {
         cv.put(COLUMN_POSTER_PATH, movie.getPosterPath());
         cv.put(COLUMN_RELEASE_DATE, movie.getReleaseDate());
         cv.put(COLUMN_FILM_ID, movie.getId());
-        return  mDb.insert(TABLE_NAME, null, cv);
+
+//       OLD VERSION  - without Content Resolver // return  mDb.insert(TABLE_NAME, null, cv);
+// Worked Uri newUri = getContentResolver().insert(LikedMoviesProvider.LIKED_CONTENT_URI, cv);
+        Uri newUri = getContentResolver().insert(LikedMoviesProvider.LIKE_MOVIE_URI, cv);
+        return 1;
     }
 
     /** unLikeMovie delete the record with "movie" from mDb
@@ -382,9 +406,16 @@ public class DetailActivity extends AppCompatActivity {
      **/
 
     private long unLikeMovie(Movie movie) {
+        Log.i(LOG_TAG, "UNLikeMovie: " +movie.getEnglishTitle());
         movie.unLike();
-        String deleteSql = COLUMN_FILM_ID + "=" + movie.getId();
-        long ret = mDb.delete(TABLE_NAME, deleteSql, null);
+//        String deleteSql = COLUMN_FILM_ID + "=" + movie.getId();
+//        Log.i(LOG_TAG, "UNLikeMovie SQL=" +deleteSql);
+//        long ret = getContentResolver().delete(LikedMoviesProvider.UNLIKE_MOVIE_URI, COLUMN_FILM_ID + "=?", new String[] {String.valueOf(movie.getId())} );
+        long ret = getContentResolver().delete(
+                LikedMoviesProvider.UNLIKE_MOVIE_URI.buildUpon().appendPath(String.valueOf(movie.getId())).build(),
+                        null, null );
+
+//        long ret = mDb.delete(TABLE_NAME, deleteSql, null);
             movieList.remove(movie);
             mAdapter.notifyDataSetChanged();
         return ret;

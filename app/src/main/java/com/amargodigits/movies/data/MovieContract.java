@@ -2,7 +2,6 @@ package com.amargodigits.movies.data;
 
 import android.provider.BaseColumns;
 
-
 public  class MovieContract {
     public static final class MovieEntry implements BaseColumns{
         public static final String TABLE_NAME="likedFilms";

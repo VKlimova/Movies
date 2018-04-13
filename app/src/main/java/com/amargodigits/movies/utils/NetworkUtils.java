@@ -1,7 +1,8 @@
 package com.amargodigits.movies.utils;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
+
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -11,9 +12,11 @@ import android.widget.Toast;
 
 import com.amargodigits.movies.BuildConfig;
 import com.amargodigits.movies.DetailActivity;
+import com.amargodigits.movies.LikedMoviesProvider;
 import com.amargodigits.movies.MainActivity;
 import com.amargodigits.movies.R;
-import com.amargodigits.movies.data.MovieDbHelper;
+import com.amargodigits.movies.data.MovieContract;
+import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
 import com.amargodigits.movies.model.Cast;
@@ -28,7 +31,7 @@ import java.util.Scanner;
 
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.mSp;
-import static com.amargodigits.movies.data.MovieDbHelper.makeMovieArrayFromSQLite;
+import static com.amargodigits.movies.MainActivity.movieList;
 
 /**
  * This module was inspired by NetworkUtils from Sunshine Udacity project
@@ -202,15 +205,40 @@ public final class NetworkUtils {
                 pageN = params[1];
             }
             mSortOrder = params[0];
-            if (params[0].equals("liked")) { // Liked movies are taken from SQLite database on the phone
-                SQLiteDatabase mDb;
-                // Create a DB helper (this will create the DB if run for the first time)
-                MovieDbHelper dbHelper = new MovieDbHelper(mContext);
-                // Keep a reference to the mDb until paused or killed. Get a writable database
-                // because you will be adding restaurant customers
-                mDb = dbHelper.getWritableDatabase();
-                makeMovieArrayFromSQLite(mDb);
+            if (params[0].equals("liked")) { // Liked movies are taken from SQLite database on the phone by Content Provider
+                Cursor cursor = mContext.getContentResolver().query(
+                        LikedMoviesProvider.LIKED_MOVIE_URI,
+                        null, null, null, null);
+                int i=0;
+                while (cursor.moveToNext()) {
+                    try {
+                        movieList.add(new Movie(
+                                        cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE)),
+                                        cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_ENGLISH_TITLE)),
+                                        cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW)),
+                                        cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_POSTER_PATH)),
+                                        cursor.getFloat(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_POPULARITY)),
+                                        cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE)),
+                                        cursor.getInt(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_FILM_ID))
+                                )
+                        );
+                    } catch (Exception e) {
+                        Log.i(LOG_TAG, "makeMovieArrayFromContentResolver Exception = " + e.toString());
+                    }
+                    i++;
+                }
+
+//                SQLiteDatabase mDb;
+//                // Create a DB helper (this will create the DB if run for the first time)
+//                MovieDbHelper dbHelper = new MovieDbHelper(mContext);
+//                // Keep a reference to the mDb until paused or killed. Get a writable database
+//                // because you will be adding restaurant customers
+//                mDb = dbHelper.getWritableDatabase();
+//                makeMovieArrayFromSQLite(mDb);
+
                 return "1";
+
+
             } else { // Popular or top-rated movies
                 URL scheduleRequestUrl = NetworkUtils.buildUrl(params[0], pageN);
                 try {

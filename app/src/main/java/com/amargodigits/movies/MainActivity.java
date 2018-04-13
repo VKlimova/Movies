@@ -181,25 +181,43 @@ public class MainActivity extends AppCompatActivity {
 
         switch (id) {
             case R.id.sort_popular: {
-                colorMenu("popular");
-                mSharedPref = getPreferences(Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = mSharedPref.edit();
-                editor.putString("SORT", "popular");
-                editor.apply();
-                movieList.clear();
-                LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                mAsyncTasc.execute("popular", "0");
+                if (isOnline(getApplicationContext())) {
+                    try {
+                        colorMenu("popular");
+                        mSharedPref = getPreferences(Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = mSharedPref.edit();
+                        editor.putString("SORT", "popular");
+                        editor.apply();
+                        movieList.clear();
+                        LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
+                        mAsyncTasc.execute("popular", "0");
+                    } catch (Exception e) {
+                        Log.i(LOG_TAG, "onCreateException " + e.toString());
+                    }
+                } else {
+                    Toast.makeText(this, "Network connection required", Toast.LENGTH_LONG).show();
+                }
+
                 return true;
             }
             case R.id.sort_toprated: {
-                colorMenu("top_rated");
-                mSharedPref = getPreferences(Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = mSharedPref.edit();
-                editor.putString("SORT", "top_rated");
-                editor.apply();
-                movieList.clear();
-                LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
-                mAsyncTasc.execute("top_rated", "0");
+
+                if (isOnline(getApplicationContext())) {
+                    try {
+                        colorMenu("top_rated");
+                        mSharedPref = getPreferences(Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = mSharedPref.edit();
+                        editor.putString("SORT", "top_rated");
+                        editor.apply();
+                        movieList.clear();
+                        LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
+                        mAsyncTasc.execute("top_rated", "0");
+                    } catch (Exception e) {
+                        Log.i(LOG_TAG, "onCreateException " + e.toString());
+                    }
+                } else {
+                    Toast.makeText(this, "Network connection required", Toast.LENGTH_LONG).show();
+                }
                 return true;
             }
             case R.id.sort_liked: {
@@ -209,8 +227,8 @@ public class MainActivity extends AppCompatActivity {
                 editor.putString("SORT", "liked");
                 editor.apply();
                 movieList.clear();
-                LoadDataTask mAsyncTask = new LoadDataTask(getApplicationContext());
-                mAsyncTask.execute("liked", "0");
+                LoadDataTask mLikedAsyncTask = new LoadDataTask(getApplicationContext());
+                mLikedAsyncTask.execute("liked", "0");
                 return true;
             }
             case R.id.settings: {
