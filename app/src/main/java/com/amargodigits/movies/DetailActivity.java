@@ -22,27 +22,23 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.amargodigits.movies.data.MovieContract;
-import com.amargodigits.movies.data.MovieDbHelper;
 import com.amargodigits.movies.model.Cast;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
 import com.amargodigits.movies.utils.NetworkUtils;
-import com.amargodigits.movies.LikedMoviesProvider;
-
 import com.squareup.picasso.Picasso;
-
 import java.util.Objects;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.mAdapter;
 import static com.amargodigits.movies.MainActivity.mSharedPref;
@@ -53,17 +49,19 @@ import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
 
 public class DetailActivity extends AppCompatActivity {
     private static final int DEFAULT_POSITION = -1;
+    public static ScrollView mScrollView;
+    public static LinearLayout mInnerLayout;
     public static TextView videosTxt;
     public static TextView reviewsTxt;
     public static TextView castTxt;
     public static Context mContext;
     public static String strReviews;
-//    SQLiteDatabase mDb;
     static Toolbar toolbar;
     final int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
     final Movie mMovie = movieList.get(moviePosition);
+    static int scrollPosition[]={0,0};
     Drawable starDrawable;
-    SharedPreferences sp;
+    static SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +71,8 @@ public class DetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.i(LOG_TAG, "DetailActivity onCreate Exception1 :" + e.toString());
         }
+       mScrollView = findViewById(R.id.mainScroll);
+        mInnerLayout=findViewById(R.id.innerLayout);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         strReviews = this.getString(R.string.reviews_lbl);
@@ -80,35 +80,11 @@ public class DetailActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         sp = PreferenceManager.getDefaultSharedPreferences(this);
         populateUI(mMovie);
-        try {
-            // Create a DB helper (this will create the DB if run for the first time)
-//            MovieDbHelper dbHelper = new MovieDbHelper(this);
-//            mDb = dbHelper.getWritableDatabase();
-
-//// Content provider starts
-//            // Queries the user dictionary and returns results
-//            Cursor mCursor;
-//            mCursor = getContentResolver().query(
-//                    LikedMoviesProvider.URI_MOVIE_ID,   // The content URI of the words table
-//                    mProjection,                        // The columns to return for each row
-//                    mSelectionClause                    // Selection criteria
-//                    mSelectionArgs,                     // Selection criteria
-//                    mSortOrder);                        // The sort order for the returned rows
-//
-
-        } catch (Exception e) {
-            Log.i(LOG_TAG, "DetailActivity Exception " + e.toString());
-        }
         reviewsTxt = findViewById(R.id.reviewsTxt);
         videosTxt = findViewById(R.id.videosTxt);
         castTxt = findViewById(R.id.castTxt);
         if (isOnline(getApplicationContext())) {
             try {
-                Boolean show_rev = sp.getBoolean("show_rev", true);
-                if (show_rev) {
-                    NetworkUtils.LoadReviewsTask mRAsyncTask = new NetworkUtils.LoadReviewsTask(getApplicationContext());
-                    mRAsyncTask.execute(mMovie.getId());
-                }
                 Boolean show_videos = sp.getBoolean("show_videos", true);
                 if (show_videos)
                 {
@@ -119,6 +95,11 @@ public class DetailActivity extends AppCompatActivity {
                 if (show_cast) {
                     NetworkUtils.LoadCastTask mCAsyncTask = new NetworkUtils.LoadCastTask(getApplicationContext());
                     mCAsyncTask.execute(mMovie.getId());
+                }
+                Boolean show_rev = sp.getBoolean("show_rev", true);
+                if (show_rev) {
+                    NetworkUtils.LoadReviewsTask mRAsyncTask = new NetworkUtils.LoadReviewsTask(getApplicationContext());
+                    mRAsyncTask.execute(mMovie.getId());
                 }
             } catch (Exception e) {
                 Log.i(LOG_TAG, e.toString());
@@ -205,8 +186,16 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Launch web intent
+                Log.i(LOG_TAG, "search_button\n mScrollView.getHeight=" +mScrollView.getHeight());
+                Log.i(LOG_TAG, "reviewsTxt.getText().length()=" +reviewsTxt.getText().length());
+                Log.i(LOG_TAG, "mInnerLayout.getHeight=" +mInnerLayout.getHeight());
+                Log.i(LOG_TAG, "curScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
+                Log.i(LOG_TAG, "mScrollView.scrollTo  X=" + scrollPosition[0] + " Y=" + scrollPosition[1]);
+                mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
+                Log.i(LOG_TAG, "curScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
+
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkTitle));
-                startActivity(intent);
+//                startActivity(intent);
             }
         });
         final String shareText=movie.getEnglishTitle() + "\n" +movie.getReleaseDate() + "\n" + movie.getOverview();
@@ -231,19 +220,33 @@ public class DetailActivity extends AppCompatActivity {
 
     public static void addReviews(final Review[] reviews) {
         reviewsTxt.append("Reviews: ");
+        final String strShow = " <Show reviews> \n\n";
+        final String strHide = " <Hide reviews> \n\n";
+        Boolean show_rev_txt = sp.getBoolean("show_rev_txt", false);
         if (reviews == null) {
             reviewsTxt.append("No reviews yet");
         } else {
-            reviewsTxt.append(reviews.length + " <Show reviews>\n\n");
+            if (show_rev_txt){
+                reviewsTxt.append(reviews.length + strHide);
+            for (Review review : reviews) {
+                reviewsTxt.append("===\n");
+                reviewsTxt.append(review.getAuthor() + "\n");
+                reviewsTxt.append("---\n");
+                reviewsTxt.append(review.getContent() + "\n\n");
+            }
+            }
+            else
+                reviewsTxt.append(reviews.length + strShow);
         }
+
         reviewsTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String strShow = " <Show reviews> \n\n";
-                String strHide = " <Hide reviews> \n\n";
+                SharedPreferences.Editor editor = sp.edit();
                 if (reviewsTxt.getText().toString().contains(strHide)) {
                     reviewsTxt.setText(strReviews);
                     reviewsTxt.append(Objects.requireNonNull(reviews).length + strShow);
+                    editor.putBoolean("show_rev_txt", false);
                 } else {
                     reviewsTxt.setText(strReviews);
                     reviewsTxt.append(Objects.requireNonNull(reviews).length + strHide);
@@ -252,8 +255,33 @@ public class DetailActivity extends AppCompatActivity {
                         reviewsTxt.append(review.getAuthor() + "\n");
                         reviewsTxt.append("---\n");
                         reviewsTxt.append(review.getContent() + "\n\n");
+                        editor.putBoolean("show_rev_txt", true);
                     }
                 }
+                editor.commit();
+            }
+        });
+
+        mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
+        Log.i(LOG_TAG, "curScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
+
+
+        ViewTreeObserver vto = mScrollView.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mScrollView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                if(scrollPosition != null)
+                    mScrollView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i(LOG_TAG, "cutScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
+                            Log.i(LOG_TAG, "mScrollView.scrollTo  X=" + scrollPosition[0] + " Y=" + scrollPosition[1]);
+                            mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
+                            Log.i(LOG_TAG, "cutScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
+                        }
+                    });
+
             }
         });
     }
@@ -285,14 +313,6 @@ public class DetailActivity extends AppCompatActivity {
                 singleTextView(videosTxt, "> ", video.getName() + " ", buildYoutubeUrl(video.getKey()).toString());
             }
         }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        // Save the user's current game state
-        savedInstanceState.putParcelable("Movie", mMovie);
-        // Always call the superclass so it can save the view hierarchy state
-        super.onSaveInstanceState(savedInstanceState);
     }
 
     /**
@@ -442,4 +462,38 @@ public class DetailActivity extends AppCompatActivity {
         // do something on back.
         super.onBackPressed();
     }
+
+
+
+//    @Override
+//    public void onSaveInstanceState(Bundle savedInstanceState) {
+//        // Save the user's current game state
+//        savedInstanceState.putParcelable("Movie", mMovie);
+//        // Always call the superclass so it can save the view hierarchy state
+//        super.onSaveInstanceState(savedInstanceState);
+//    }
+
+// As seen on:
+// https://stackoverflow.com/questions/29208086/save-the-position-of-scrollview-when-the-orientation-changes/29208325#29208325
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.i(LOG_TAG, "onSaveInstanceState Save X=" + mScrollView.getScrollX() + " Y=" + mScrollView.getScrollY());
+        Log.i(LOG_TAG, "onSaveInstanceState mScrollView.getHeight=" +mScrollView.getHeight());
+        outState.putIntArray("ARTICLE_SCROLL_POSITION",
+                new int[]{ mScrollView.getScrollX(), mScrollView.getScrollY()});
+    }
+
+    //    Then restore the position in the onRestoreInstanceState method. Note that we need to post a Runnable to the ScrollView to get this to work:
+
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        int height = getApplicationContext().getResources().getDisplayMetrics().heightPixels;
+        int width = getApplicationContext().getResources().getDisplayMetrics().widthPixels;
+        Log.i(LOG_TAG, "onRestoreInstanceState h="+height + " w="+width);
+        super.onRestoreInstanceState(savedInstanceState);
+        final int[] position = savedInstanceState.getIntArray("ARTICLE_SCROLL_POSITION");
+        scrollPosition[0]=position[0];
+        scrollPosition[1]=position[1];
+
+    }
+
 }

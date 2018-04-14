@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.ViewTreeObserver;
 import android.widget.Toast;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.utils.EndlessRecyclerViewScrollListener;
@@ -28,8 +29,10 @@ import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
 
 public class MainActivity extends AppCompatActivity {
     public static final String LOG_TAG = "Movies Log";
-    public static ArrayList <Movie> movieList = new ArrayList<>();
+    public static ArrayList<Movie> movieList = new ArrayList<>();
     public static RecyclerView mRecyclerView;
+    public static GridLayoutManager mLayoutManager;
+    public static int positionIndex=0;
     public String sortOrder;
     public static SharedPreferences mSharedPref, mSp;
     static MovieAdapter mAdapter;
@@ -44,15 +47,15 @@ public class MainActivity extends AppCompatActivity {
         mSharedPref = getPreferences(Context.MODE_PRIVATE);
         mSp = PreferenceManager.getDefaultSharedPreferences(this);
         sortOrder = mSharedPref.getString("SORT", "popular");
-        if (!( sortOrder.contains("liked") || sortOrder.contains("top_rated") || sortOrder.contains("popular") )) {
+        if (!(sortOrder.contains("liked") || sortOrder.contains("top_rated") || sortOrder.contains("popular"))) {
             sortOrder = "top_rated";
         }
-        mainToolbar =  findViewById(R.id.mainToolbar);
+        mainToolbar = findViewById(R.id.mainToolbar);
         mainToolbar.setTitle(makeTitle(sortOrder));
         setSupportActionBar(mainToolbar);
         if (sortOrder.contains("liked")) {
             LoadDataTask mLikedAsyncTask = new LoadDataTask(getApplicationContext());
-            mLikedAsyncTask.execute("liked","0");
+            mLikedAsyncTask.execute("liked", "0");
         } else {
             if (isOnline(getApplicationContext())) {
                 try {
@@ -66,11 +69,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     public static void doRecView(Context tContext, final String sortOrder, String pageN) {
-        if (sortOrder.contains("liked")){
+        if (sortOrder.contains("liked")) {
             mAdapter = new MovieAdapter(tContext, movieList);
             mRecyclerView.setHasFixedSize(true);
-            GridLayoutManager mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
+            mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
             mainToolbar.setTitle(makeTitle(sortOrder));
             mRecyclerView.setLayoutManager(mLayoutManager);
             mRecyclerView.setAdapter(mAdapter);
@@ -80,10 +84,10 @@ public class MainActivity extends AppCompatActivity {
         if (pageN.equals("0")) {
             mAdapter = new MovieAdapter(tContext, movieList);
             mRecyclerView.setHasFixedSize(true);
-            GridLayoutManager mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
+            mLayoutManager = new GridLayoutManager(tContext, gridColumnsNumber(tContext));
             mainToolbar.setTitle(makeTitle(sortOrder));
             mRecyclerView.setLayoutManager(mLayoutManager);
-                // Retain an instance so that you can call `resetState()` for fresh searches
+            // Retain an instance so that you can call `resetState()` for fresh searches
             EndlessRecyclerViewScrollListener scrollListener = new EndlessRecyclerViewScrollListener(mLayoutManager) {
                 @Override
                 public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
@@ -92,15 +96,33 @@ public class MainActivity extends AppCompatActivity {
                     loadNextDataFromApi(sortOrder, page);
                 }
             };
-                // Adds the scroll listener to RecyclerView
-                mRecyclerView.addOnScrollListener(scrollListener);
-                mRecyclerView.setAdapter(mAdapter);
-    } else {
-            mAdapter.notifyItemInserted(mAdapter.getItemCount()+1);
-            mAdapter.notifyItemInserted(mAdapter.getItemCount()+2);
-            mAdapter.notifyItemInserted(mAdapter.getItemCount()+3);
-            mAdapter.notifyItemInserted(mAdapter.getItemCount()+4);
+            // Adds the scroll listener to RecyclerView
+            mRecyclerView.addOnScrollListener(scrollListener);
+            mRecyclerView.setAdapter(mAdapter);
+        } else {
+            mAdapter.notifyItemInserted(mAdapter.getItemCount() + 1);
+            mAdapter.notifyItemInserted(mAdapter.getItemCount() + 2);
+            mAdapter.notifyItemInserted(mAdapter.getItemCount() + 3);
+            mAdapter.notifyItemInserted(mAdapter.getItemCount() + 4);
         }
+
+        ViewTreeObserver vto = mRecyclerView.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                if(positionIndex!= 0)
+                    mRecyclerView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLayoutManager.scrollToPositionWithOffset(positionIndex,0);
+                        }
+                    });
+
+            }
+        });
+
+
     }
 
     // Append the next page of data into the adapter
@@ -110,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
         String pageN = offset + "";
         try {
             mAsyncTasc.execute(sortOrder, pageN);
-        }catch (Exception e) {
-            Log.i(LOG_TAG, "MainActivity loadNextDataFromApi Exception "+ e.toString());
+        } catch (Exception e) {
+            Log.i(LOG_TAG, "MainActivity loadNextDataFromApi Exception " + e.toString());
         }
         mAdapter.notifyDataSetChanged();
         // Send an API request to retrieve appropriate paginated data
@@ -169,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     /**
      * Callback invoked when a menu item was selected from this Activity's menu.
      *
@@ -239,8 +262,24 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
     private static String makeTitle(String sortOrder) {
         sortOrder = sortOrder.replace("_", " ");
-        return sortOrder.substring(0, 1).toUpperCase() + sortOrder.substring(1) ;
+        return sortOrder.substring(0, 1).toUpperCase() + sortOrder.substring(1);
     }
+
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        positionIndex = mLayoutManager.findFirstVisibleItemPosition();
+        outState.putInt("GRID_SCROLL_POSITION", positionIndex);
+    }
+
+    //    Then restore the position in the onRestoreInstanceState method. Note that we need to post a Runnable to the ScrollView to get this to work:
+
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        positionIndex = savedInstanceState.getInt("GRID_SCROLL_POSITION");
+        mLayoutManager.scrollToPositionWithOffset(positionIndex,0);
+    }
+
 }

@@ -227,22 +227,12 @@ public final class NetworkUtils {
                     }
                     i++;
                 }
-
-//                SQLiteDatabase mDb;
-//                // Create a DB helper (this will create the DB if run for the first time)
-//                MovieDbHelper dbHelper = new MovieDbHelper(mContext);
-//                // Keep a reference to the mDb until paused or killed. Get a writable database
-//                // because you will be adding restaurant customers
-//                mDb = dbHelper.getWritableDatabase();
-//                makeMovieArrayFromSQLite(mDb);
-
                 return "1";
 
 
             } else { // Popular or top-rated movies
                 URL scheduleRequestUrl = NetworkUtils.buildUrl(params[0], pageN);
                 try {
-                    Log.i(LOG_TAG, "2- NetworkUtils LoadDataTask doInBackground params[0]=" + params[0]);
                     String moviesResponse = NetworkUtils
                             .getResponseFromHttpUrl(scheduleRequestUrl);
                     int jsonStart = Objects.requireNonNull(moviesResponse).indexOf("(") + 1;

@@ -70,20 +70,16 @@ public class LikedMoviesProvider extends ContentProvider {
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         String id;
-        Log.i(LOG_TAG, "Provider query = " + uri.toString());
-        // проверяем Uri
+        // check Uri
         switch (uriMatcher.match(uri)) {
-            case URI_MOVIES: // list Uri
-                Log.i(LOG_TAG, "URI_MOVIES");
+            case URI_MOVIES: //  Uri for list
                 // sorting by the name if not specified
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder =  MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " ASC";
+                    sortOrder =  MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " DESC";
                 }
                 break;
-            case URI_MOVIE_ID: // Uri с ID
+            case URI_MOVIE_ID: // Uri with ID
                 id = uri.getLastPathSegment();
-                Log.i(LOG_TAG, "URI_MOVIE_ID, " + id);
-                // добавляем ID к условию выборки
                 if (TextUtils.isEmpty(selection)) {
                     selection = MovieContract.MovieEntry.COLUMN_FILM_ID + " = " + id;
                 } else {
@@ -96,8 +92,6 @@ public class LikedMoviesProvider extends ContentProvider {
         mDb = dbHelper.getWritableDatabase();
         Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, projection, selection,
                 selectionArgs, null, null, sortOrder);
-        // просим ContentResolver уведомлять этот курсор
-        // об изменениях данных в LIKED_MOVIE_URI
         cursor.setNotificationUri(getContext().getContentResolver(), LIKED_MOVIE_URI);
         return cursor;
     }
@@ -128,7 +122,6 @@ public class LikedMoviesProvider extends ContentProvider {
         long rowID = mDb.insert(MovieContract.MovieEntry.TABLE_NAME, null, contentValues);
         Uri resultUri = ContentUris.withAppendedId(LIKE_MOVIE_URI, rowID);
         Log.i(LOG_TAG, "Provider insert resultUri: " + resultUri.toString() );
-        // уведомляем ContentResolver, что данные по адресу resultUri изменились
         getContext().getContentResolver().notifyChange(resultUri, null);
         return resultUri;
     }
