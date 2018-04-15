@@ -43,21 +43,24 @@
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="bottom">
+                android:gravity="bottom"
+                style="?android:attr/buttonBarStyle">
                 <Button
                     android:id="@+id/search_button"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:drawableStart="@android:drawable/ic_menu_search"
-                    android:text="@string/search" />
+                    android:text="@string/search"
+                    style="?android:attr/buttonBarButtonStyle" />
                 <Button
                     android:id="@+id/share_button"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:drawableStart="@android:drawable/ic_menu_share"
-                    android:text="@string/share" />
+                    android:text="@string/share"
+                    style="?android:attr/buttonBarButtonStyle"/>
             </LinearLayout>
             <TextView
                 android:id="@+id/videosTxt"

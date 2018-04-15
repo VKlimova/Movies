@@ -8,9 +8,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
 import com.amargodigits.movies.data.MovieDbHelper;
+
 import android.database.sqlite.SQLiteDatabase;
+
 import com.amargodigits.movies.data.MovieContract;
+
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -27,7 +31,7 @@ public class LikedMoviesProvider extends ContentProvider {
     // Content Uri's
     public static final Uri LIKED_MOVIE_URI = Uri.parse("content://" + AUTHORITY + "/" + LIKED_PATH);
     public static final Uri LIKE_MOVIE_URI = Uri.parse("content://" + AUTHORITY + "/" + LIKE_PATH);
-    public static final Uri UNLIKE_MOVIE_URI = Uri.parse("content://" + AUTHORITY + "/" + UNLIKE_PATH) ;
+    public static final Uri UNLIKE_MOVIE_URI = Uri.parse("content://" + AUTHORITY + "/" + UNLIKE_PATH);
 
     // Strings
     static final String LIKED_CONTENT_TYPE = ".dir/vnd." + AUTHORITY + "." + LIKED_PATH;
@@ -47,13 +51,13 @@ public class LikedMoviesProvider extends ContentProvider {
 
     // Create UriMatcher
     private static final UriMatcher uriMatcher;
+
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         uriMatcher.addURI(AUTHORITY, LIKED_PATH, URI_MOVIES);
         uriMatcher.addURI(AUTHORITY, LIKED_PATH + "/#", URI_MOVIE_ID);
         uriMatcher.addURI(AUTHORITY, LIKE_PATH, URI_MOVIE_LIKE); // to add movie to 'liked' database
-        uriMatcher.addURI(AUTHORITY, UNLIKE_PATH+"/#", URI_MOVIE_UNLIKE); // to add movie to 'liked' database
-
+        uriMatcher.addURI(AUTHORITY, UNLIKE_PATH + "/#", URI_MOVIE_UNLIKE); // to add movie to 'liked' database
     }
 
     MovieDbHelper dbHelper;
@@ -75,7 +79,7 @@ public class LikedMoviesProvider extends ContentProvider {
             case URI_MOVIES: //  Uri for list
                 // sorting by the name if not specified
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder =  MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " DESC";
+                    sortOrder = MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " DESC";
                 }
                 break;
             case URI_MOVIE_ID: // Uri with ID
@@ -99,7 +103,7 @@ public class LikedMoviesProvider extends ContentProvider {
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-        Log.i(LOG_TAG, "Provider getType"+ uri.toString());
+        Log.i(LOG_TAG, "Provider getType" + uri.toString());
 
         switch (uriMatcher.match(uri)) {
             case URI_MOVIES:
@@ -115,13 +119,13 @@ public class LikedMoviesProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
-        Log.i(LOG_TAG, "Provider insert uri = " + uri.toString() );
-       if (uriMatcher.match(uri) != URI_MOVIE_LIKE)
+        Log.i(LOG_TAG, "Provider insert uri = " + uri.toString());
+        if (uriMatcher.match(uri) != URI_MOVIE_LIKE)
             throw new IllegalArgumentException("Wrong URI: " + uri);
         mDb = dbHelper.getWritableDatabase();
         long rowID = mDb.insert(MovieContract.MovieEntry.TABLE_NAME, null, contentValues);
         Uri resultUri = ContentUris.withAppendedId(LIKE_MOVIE_URI, rowID);
-        Log.i(LOG_TAG, "Provider insert resultUri: " + resultUri.toString() );
+        Log.i(LOG_TAG, "Provider insert resultUri: " + resultUri.toString());
         getContext().getContentResolver().notifyChange(resultUri, null);
         return resultUri;
     }
@@ -130,8 +134,8 @@ public class LikedMoviesProvider extends ContentProvider {
     // provides delete the record to unlike movie in DB functionality
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        if (uriMatcher.match(uri)!=URI_MOVIE_UNLIKE)
-                throw new IllegalArgumentException("Wrong URI: " + uri);
+        if (uriMatcher.match(uri) != URI_MOVIE_UNLIKE)
+            throw new IllegalArgumentException("Wrong URI: " + uri);
         mDb = dbHelper.getWritableDatabase();
         String id = uri.getLastPathSegment();
         selection = MovieContract.MovieEntry.COLUMN_FILM_ID + "=?";

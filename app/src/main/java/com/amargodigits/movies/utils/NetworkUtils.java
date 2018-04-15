@@ -223,10 +223,11 @@ public final class NetworkUtils {
                                 )
                         );
                     } catch (Exception e) {
-                        Log.i(LOG_TAG, "makeMovieArrayFromContentResolver Exception = " + e.toString());
+                        Log.i(LOG_TAG, "makeMovieArrayFromContentResolver Exception: " + e.toString());
                     }
                     i++;
                 }
+                cursor.close();
                 return "1";
 
 

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -29,7 +28,6 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.amargodigits.movies.data.MovieContract;
 import com.amargodigits.movies.model.Cast;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
@@ -50,7 +48,7 @@ import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
 public class DetailActivity extends AppCompatActivity {
     private static final int DEFAULT_POSITION = -1;
     public static ScrollView mScrollView;
-    public static LinearLayout mInnerLayout;
+//    public static LinearLayout mInnerLayout;
     public static TextView videosTxt;
     public static TextView reviewsTxt;
     public static TextView castTxt;
@@ -59,20 +57,19 @@ public class DetailActivity extends AppCompatActivity {
     static Toolbar toolbar;
     final int moviePosition = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
     final Movie mMovie = movieList.get(moviePosition);
-    static int scrollPosition[]={0,0};
     Drawable starDrawable;
     static SharedPreferences sp;
+// Following variables scrollPosition and savedMovieId are used to maintain scroll position when rotating device,
+// but don't maintain scroll position when choosing another movie.
+    static int scrollPosition[] = {0, 0};
+    static int savedMovieId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_detail);
-        } catch (Exception e) {
-            Log.i(LOG_TAG, "DetailActivity onCreate Exception1 :" + e.toString());
-        }
-       mScrollView = findViewById(R.id.mainScroll);
-        mInnerLayout=findViewById(R.id.innerLayout);
+        setContentView(R.layout.activity_detail);
+        mScrollView = findViewById(R.id.mainScroll);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         strReviews = this.getString(R.string.reviews_lbl);
@@ -86,8 +83,7 @@ public class DetailActivity extends AppCompatActivity {
         if (isOnline(getApplicationContext())) {
             try {
                 Boolean show_videos = sp.getBoolean("show_videos", true);
-                if (show_videos)
-                {
+                if (show_videos) {
                     NetworkUtils.LoadVideosTask mVAsyncTask = new NetworkUtils.LoadVideosTask(getApplicationContext());
                     mVAsyncTask.execute(mMovie.getId());
                 }
@@ -102,7 +98,7 @@ public class DetailActivity extends AppCompatActivity {
                     mRAsyncTask.execute(mMovie.getId());
                 }
             } catch (Exception e) {
-                Log.i(LOG_TAG, e.toString());
+                Log.i(LOG_TAG, "Loading network data exception: " + e.toString());
             }
         } else {
             Toast.makeText(this, "Network connection required", Toast.LENGTH_LONG).show();
@@ -148,6 +144,7 @@ public class DetailActivity extends AppCompatActivity {
 
     /**
      * Shows the movie information on the screen
+     *
      * @param movie The details on the movie
      */
 
@@ -164,15 +161,14 @@ public class DetailActivity extends AppCompatActivity {
             englishTitle.setVisibility(View.GONE);
         }
         String searchString1, searchString2;
-        try
-        {
+        try {
             sp.contains("search1");
         } catch (Exception e) {
-            Log.i(LOG_TAG, " populateUI Exception - " + e.toString());
+            Log.i(LOG_TAG, " populateUI Exception: " + e.toString());
         }
-        if (sp.contains("search1")){
-            searchString1 = sp.getString("search1","");
-            searchString2 = sp.getString("search2","");
+        if (sp.contains("search1")) {
+            searchString1 = sp.getString("search1", "");
+            searchString2 = sp.getString("search2", "");
         } else {
             searchString1 = BuildConfig.SEARCH_STRING_1;
             searchString2 = BuildConfig.SEARCH_STRING_2;
@@ -186,19 +182,13 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Launch web intent
-                Log.i(LOG_TAG, "search_button\n mScrollView.getHeight=" +mScrollView.getHeight());
-                Log.i(LOG_TAG, "reviewsTxt.getText().length()=" +reviewsTxt.getText().length());
-                Log.i(LOG_TAG, "mInnerLayout.getHeight=" +mInnerLayout.getHeight());
-                Log.i(LOG_TAG, "curScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
-                Log.i(LOG_TAG, "mScrollView.scrollTo  X=" + scrollPosition[0] + " Y=" + scrollPosition[1]);
-                mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
-                Log.i(LOG_TAG, "curScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
-
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkTitle));
-//                startActivity(intent);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
             }
         });
-        final String shareText=movie.getEnglishTitle() + "\n" +movie.getReleaseDate() + "\n" + movie.getOverview();
+        final String shareText = movie.getEnglishTitle() + "\n" + movie.getReleaseDate() + "\n" + movie.getOverview();
         share_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -207,7 +197,9 @@ public class DetailActivity extends AppCompatActivity {
                 intent.setAction(Intent.ACTION_SEND);
                 intent.putExtra(Intent.EXTRA_TEXT, shareText);
                 intent.setType("text/plain");
-                startActivity(intent);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
             }
         });
     }
@@ -226,16 +218,15 @@ public class DetailActivity extends AppCompatActivity {
         if (reviews == null) {
             reviewsTxt.append("No reviews yet");
         } else {
-            if (show_rev_txt){
+            if (show_rev_txt) {
                 reviewsTxt.append(reviews.length + strHide);
-            for (Review review : reviews) {
-                reviewsTxt.append("===\n");
-                reviewsTxt.append(review.getAuthor() + "\n");
-                reviewsTxt.append("---\n");
-                reviewsTxt.append(review.getContent() + "\n\n");
-            }
-            }
-            else
+                for (Review review : reviews) {
+                    reviewsTxt.append("===\n");
+                    reviewsTxt.append(review.getAuthor() + "\n");
+                    reviewsTxt.append("---\n");
+                    reviewsTxt.append(review.getContent() + "\n\n");
+                }
+            } else
                 reviewsTxt.append(reviews.length + strShow);
         }
 
@@ -258,27 +249,23 @@ public class DetailActivity extends AppCompatActivity {
                         editor.putBoolean("show_rev_txt", true);
                     }
                 }
-                editor.commit();
+                editor.apply();
             }
         });
 
-        mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
-        Log.i(LOG_TAG, "curScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
-
+// This ViewTreeOvserver is need to maintain scroll position after the reviewsTxt is populated with data after AsyncTasc completed
 
         ViewTreeObserver vto = mScrollView.getViewTreeObserver();
-        vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 mScrollView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                if(scrollPosition != null)
+                if (scrollPosition != null)
                     mScrollView.post(new Runnable() {
                         @Override
                         public void run() {
-                            Log.i(LOG_TAG, "cutScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
-                            Log.i(LOG_TAG, "mScrollView.scrollTo  X=" + scrollPosition[0] + " Y=" + scrollPosition[1]);
-                            mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
-                            Log.i(LOG_TAG, "cutScroll:X=" + mScrollView.getScrollX()+" y=" + mScrollView.getScrollY());
+                            final int moviePos= mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
+                            if (savedMovieId==moviePos) mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
                         }
                     });
 
@@ -294,12 +281,15 @@ public class DetailActivity extends AppCompatActivity {
     public static void addCast(Cast[] castAr) {
         castTxt.setText("\nCast:\n");
         for (Cast cast : castAr) {
-                castTxt.append("* " + cast.getName() + "\n");
-            }
+            castTxt.append("* " + cast.getName() + "\n");
+        }
     }
+
     public static final SpannableStringBuilder spanText = new SpannableStringBuilder();
+
     /**
      * Populates the VIDEOS list on the screen
+     *
      * @param videosAr The array with the reviews
      */
     public static void addVideos(Video[] videosAr) {
@@ -335,7 +325,7 @@ public class DetailActivity extends AppCompatActivity {
                 try {
                     mContext.startActivity(intent);
                 } catch (Exception e) {
-                    Log.i(LOG_TAG, "Exception opening " + Uri.parse("http://ya.ru").toString() + " - " + e.toString());
+                    Log.i(LOG_TAG, "Exception opening " + Uri.parse("http://ya.ru").toString() + " : " + e.toString());
                 }
             }
 
@@ -345,7 +335,6 @@ public class DetailActivity extends AppCompatActivity {
                 textPaint.setUnderlineText(false);    // this remove the underline
             }
         }, spanText.length() - revName.length(), spanText.length(), 0);
-
         spanText.append("\n");
         textView.setMovementMethod(LinkMovementMethod.getInstance());
         textView.setText(spanText, TextView.BufferType.SPANNABLE);
@@ -367,7 +356,7 @@ public class DetailActivity extends AppCompatActivity {
             try {
                 likeMovieClick(mMovie);
             } catch (Exception e) {
-                Log.i(LOG_TAG, "like Exception: " + e.toString());
+                Log.i(LOG_TAG, "Exception saving likes data: " + e.toString());
             }
         return true;
     }
@@ -375,21 +364,20 @@ public class DetailActivity extends AppCompatActivity {
     private void likeMovieClick(Movie movie) {
 
         if (iLikeMovie(movie.getId())) {
-             unLikeMovie(movie);
+            unLikeMovie(movie);
         } else {
             likeMovie(movie);
         }
         setStarColor();
     }
 
-    /** iLikeMovie checks if the movie is liked
+    /**
+     * iLikeMovie checks if the movie is liked
+     *
      * @param id -  film id
      * @return true if movie is liked, false if not
      **/
     private boolean iLikeMovie(int id) {
-        String selection = MovieContract.MovieEntry.COLUMN_FILM_ID + "=" + id;
-    //        Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, null, selection, null, null, null, null);
-   //     Cursor cursor = mDb.query(MovieContract.MovieEntry.TABLE_NAME, null, selection, null, null, null, null);
         Cursor cursor = getContentResolver().query(
                 LikedMoviesProvider.LIKED_MOVIE_URI.buildUpon().appendPath(String.valueOf(id)).build(),
                 null, null, null, null);
@@ -398,13 +386,11 @@ public class DetailActivity extends AppCompatActivity {
         return count != 0;
     }
 
-    /** likeMovie insert the record with "movie" to mDb
+    /**
+     * likeMovie insert the record with "movie" to mDb
      * @param movie -  film
-     * @return the number of inserted records
      **/
-    private long likeMovie(Movie movie) {
-        Log.i(LOG_TAG, "likeMovie: " +movie.getEnglishTitle());
-
+    private void likeMovie(Movie movie) {
         ContentValues cv = new ContentValues();
         cv.put(COLUMN_ENGLISH_TITLE, movie.getEnglishTitle());
         cv.put(COLUMN_ORIGINAL_TITLE, movie.getOriginalTitle());
@@ -413,32 +399,23 @@ public class DetailActivity extends AppCompatActivity {
         cv.put(COLUMN_POSTER_PATH, movie.getPosterPath());
         cv.put(COLUMN_RELEASE_DATE, movie.getReleaseDate());
         cv.put(COLUMN_FILM_ID, movie.getId());
-
-//       OLD VERSION  - without Content Resolver // return  mDb.insert(TABLE_NAME, null, cv);
-// Worked Uri newUri = getContentResolver().insert(LikedMoviesProvider.LIKED_CONTENT_URI, cv);
-        Uri newUri = getContentResolver().insert(LikedMoviesProvider.LIKE_MOVIE_URI, cv);
-        return 1;
+        //Uri newUri =
+        getContentResolver().insert(LikedMoviesProvider.LIKE_MOVIE_URI, cv);
     }
 
-    /** unLikeMovie delete the record with "movie" from mDb
+    /**
+     * unLikeMovie deletes the record with "movie" from mDb
      * @param movie -  film
-     * @return the number of deleted records
      **/
-
-    private long unLikeMovie(Movie movie) {
-        Log.i(LOG_TAG, "UNLikeMovie: " +movie.getEnglishTitle());
+    private void unLikeMovie(Movie movie) {
+        Log.i(LOG_TAG, "UNLikeMovie: " + movie.getEnglishTitle());
         movie.unLike();
-//        String deleteSql = COLUMN_FILM_ID + "=" + movie.getId();
-//        Log.i(LOG_TAG, "UNLikeMovie SQL=" +deleteSql);
-//        long ret = getContentResolver().delete(LikedMoviesProvider.UNLIKE_MOVIE_URI, COLUMN_FILM_ID + "=?", new String[] {String.valueOf(movie.getId())} );
-        long ret = getContentResolver().delete(
+        //long ret =
+                getContentResolver().delete(
                 LikedMoviesProvider.UNLIKE_MOVIE_URI.buildUpon().appendPath(String.valueOf(movie.getId())).build(),
-                        null, null );
-
-//        long ret = mDb.delete(TABLE_NAME, deleteSql, null);
-            movieList.remove(movie);
-            mAdapter.notifyDataSetChanged();
-        return ret;
+                null, null);
+        movieList.remove(movie);
+        mAdapter.notifyDataSetChanged();
     }
 
     private void setStarColor() {
@@ -447,53 +424,42 @@ public class DetailActivity extends AppCompatActivity {
             if (starDrawable != null) {
                 starDrawable.mutate();
                 if (iLikeMovie(mMovie.getId())) {
-                    starDrawable.setColorFilter(Color.rgb(255,153,51), PorterDuff.Mode.SRC_ATOP);
+                    starDrawable.setColorFilter(Color.rgb(255, 153, 51), PorterDuff.Mode.SRC_ATOP);
                 } else {
                     starDrawable.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
                 }
             }
         } catch (Exception e) {
-            Log.i(LOG_TAG, "DetailActivity onCreateOptionsMenu Exception " + e.toString());
+            Log.i(LOG_TAG, "Set star color Exception: " + e.toString());
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        // do something on back.
-        super.onBackPressed();
-    }
-
-
-
-//    @Override
-//    public void onSaveInstanceState(Bundle savedInstanceState) {
-//        // Save the user's current game state
-//        savedInstanceState.putParcelable("Movie", mMovie);
-//        // Always call the superclass so it can save the view hierarchy state
-//        super.onSaveInstanceState(savedInstanceState);
-//    }
-
-// As seen on:
+    // As seen on:
 // https://stackoverflow.com/questions/29208086/save-the-position-of-scrollview-when-the-orientation-changes/29208325#29208325
+    //Saving Scroll position to maintain it after rotating device portrait-landscape and back.
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.i(LOG_TAG, "onSaveInstanceState Save X=" + mScrollView.getScrollX() + " Y=" + mScrollView.getScrollY());
-        Log.i(LOG_TAG, "onSaveInstanceState mScrollView.getHeight=" +mScrollView.getHeight());
         outState.putIntArray("ARTICLE_SCROLL_POSITION",
-                new int[]{ mScrollView.getScrollX(), mScrollView.getScrollY()});
+                new int[]{mScrollView.getScrollX(), mScrollView.getScrollY()});
+        outState.putInt("MOVIE_ID", moviePosition);
+
+        Log.i(LOG_TAG, "Saving moviePosition=" + moviePosition);
+
     }
 
-    //    Then restore the position in the onRestoreInstanceState method. Note that we need to post a Runnable to the ScrollView to get this to work:
-
+    //    Then restore the position in the onRestoreInstanceState method. We can't scroll right now because the ScrollView is not ready yet:
+    // Scroll view is populated via AsyncTask.
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        int height = getApplicationContext().getResources().getDisplayMetrics().heightPixels;
-        int width = getApplicationContext().getResources().getDisplayMetrics().widthPixels;
-        Log.i(LOG_TAG, "onRestoreInstanceState h="+height + " w="+width);
+        savedMovieId = savedInstanceState.getInt("MOVIE_ID");
+//        int height = getApplicationContext().getResources().getDisplayMetrics().heightPixels;
+//        int width = getApplicationContext().getResources().getDisplayMetrics().widthPixels;
+//        Log.i(LOG_TAG, "onRestoreInstanceState current moviePosition=" + moviePosition);
+//        Log.i(LOG_TAG, "onRestoreInstanceState savedMovieId=" + savedMovieId);
         super.onRestoreInstanceState(savedInstanceState);
         final int[] position = savedInstanceState.getIntArray("ARTICLE_SCROLL_POSITION");
-        scrollPosition[0]=position[0];
-        scrollPosition[1]=position[1];
-
+        if (moviePosition == savedMovieId) {
+            scrollPosition[0] = position[0];
+            scrollPosition[1] = position[1];
+        }
     }
-
 }

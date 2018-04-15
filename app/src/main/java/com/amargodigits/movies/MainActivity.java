@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
                     LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
                     mAsyncTasc.execute(sortOrder, "0");
                 } catch (Exception e) {
-                    Log.i(LOG_TAG, "onCreateException " + e.toString());
+                    Log.i(LOG_TAG, "Loading data exception: " + e.toString());
                 }
             } else {
                 Toast.makeText(this, "Network connection required", Toast.LENGTH_LONG).show();
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             mAsyncTasc.execute(sortOrder, pageN);
         } catch (Exception e) {
-            Log.i(LOG_TAG, "MainActivity loadNextDataFromApi Exception " + e.toString());
+            Log.i(LOG_TAG, "Exception loading next data from Api: " + e.toString());
         }
         mAdapter.notifyDataSetChanged();
         // Send an API request to retrieve appropriate paginated data
@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             colorMenu(sortOrder);
         } catch (Exception e) {
-            Log.i(LOG_TAG, "MainActivity onCreateOptionsMenu colorMenu Exception " + e.toString());
+            Log.i(LOG_TAG, "onCreateOptionsMenu colorMenu Exception: " + e.toString());
         }
         return true;
     }
@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                         LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
                         mAsyncTasc.execute("popular", "0");
                     } catch (Exception e) {
-                        Log.i(LOG_TAG, "onCreateException " + e.toString());
+                        Log.i(LOG_TAG, "AsyncTasc Network Exception: " + e.toString());
                     }
                 } else {
                     Toast.makeText(this, "Network connection required", Toast.LENGTH_LONG).show();
@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                         LoadDataTask mAsyncTasc = new LoadDataTask(getApplicationContext());
                         mAsyncTasc.execute("top_rated", "0");
                     } catch (Exception e) {
-                        Log.i(LOG_TAG, "onCreateException " + e.toString());
+                        Log.i(LOG_TAG, "AsyncTasc Network Exception: " + e.toString());
                     }
                 } else {
                     Toast.makeText(this, "Network connection required", Toast.LENGTH_LONG).show();

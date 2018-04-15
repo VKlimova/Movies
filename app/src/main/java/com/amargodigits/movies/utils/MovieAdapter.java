@@ -68,7 +68,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
                 try {
                 mContext.startActivity(intent);}
                 catch (Exception e) {
-                Log.i(LOG_TAG, "Exception = " + e.toString());}
+                Log.i(LOG_TAG, "Opening movie details exception: " + e.toString());}
             }
         });
 

@@ -78,7 +78,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                                     )
                             );
                         } catch (Exception e) {
-                            Log.i(LOG_TAG, "makeMovieArrayFromSQLite Exception = " + e.toString());
+                            Log.i(LOG_TAG, "makeMovieArrayFromSQLite Exception: " + e.toString());
                         }
                         i++;
                     }
