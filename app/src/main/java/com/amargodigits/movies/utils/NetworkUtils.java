@@ -65,7 +65,7 @@ public final class NetworkUtils {
         try {
             url = new URL(builtUri.toString());
         } catch (MalformedURLException e) {
-            Log.i(LOG_TAG, "NetworkUtils buildUrl " + e.toString());
+            Log.i(LOG_TAG, "NetworkUtils buildUrl Exception:" + e.toString());
         }
         return url;
     }

@@ -8,16 +8,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
-import com.amargodigits.movies.data.MovieDbHelper;
-
-import android.database.sqlite.SQLiteDatabase;
-
-import com.amargodigits.movies.data.MovieContract;
-
 import android.text.TextUtils;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-
+import com.amargodigits.movies.data.MovieDbHelper;
+import com.amargodigits.movies.data.MovieContract;
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
 
 public class LikedMoviesProvider extends ContentProvider {
@@ -119,13 +114,11 @@ public class LikedMoviesProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
-        Log.i(LOG_TAG, "Provider insert uri = " + uri.toString());
         if (uriMatcher.match(uri) != URI_MOVIE_LIKE)
             throw new IllegalArgumentException("Wrong URI: " + uri);
         mDb = dbHelper.getWritableDatabase();
         long rowID = mDb.insert(MovieContract.MovieEntry.TABLE_NAME, null, contentValues);
         Uri resultUri = ContentUris.withAppendedId(LIKE_MOVIE_URI, rowID);
-        Log.i(LOG_TAG, "Provider insert resultUri: " + resultUri.toString());
         getContext().getContentResolver().notifyChange(resultUri, null);
         return resultUri;
     }

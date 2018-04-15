@@ -24,19 +24,22 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.amargodigits.movies.model.Cast;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
 import com.amargodigits.movies.model.Video;
 import com.amargodigits.movies.utils.NetworkUtils;
 import com.squareup.picasso.Picasso;
+
 import java.util.Objects;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
 import static com.amargodigits.movies.MainActivity.LOG_TAG;
 import static com.amargodigits.movies.MainActivity.mAdapter;
 import static com.amargodigits.movies.MainActivity.mSharedPref;
@@ -48,7 +51,6 @@ import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
 public class DetailActivity extends AppCompatActivity {
     private static final int DEFAULT_POSITION = -1;
     public static ScrollView mScrollView;
-//    public static LinearLayout mInnerLayout;
     public static TextView videosTxt;
     public static TextView reviewsTxt;
     public static TextView castTxt;
@@ -59,7 +61,7 @@ public class DetailActivity extends AppCompatActivity {
     final Movie mMovie = movieList.get(moviePosition);
     Drawable starDrawable;
     static SharedPreferences sp;
-// Following variables scrollPosition and savedMovieId are used to maintain scroll position when rotating device,
+    // Following variables scrollPosition and savedMovieId are used to maintain scroll position when rotating device,
 // but don't maintain scroll position when choosing another movie.
     static int scrollPosition[] = {0, 0};
     static int savedMovieId;
@@ -253,8 +255,7 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
 
-// This ViewTreeOvserver is need to maintain scroll position after the reviewsTxt is populated with data after AsyncTasc completed
-
+// This ViewTreeOvserver is needed to maintain scroll position after the reviewsTxt is populated with data after AsyncTasc completed
         ViewTreeObserver vto = mScrollView.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -264,8 +265,9 @@ public class DetailActivity extends AppCompatActivity {
                     mScrollView.post(new Runnable() {
                         @Override
                         public void run() {
-                            final int moviePos= mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
-                            if (savedMovieId==moviePos) mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
+                            final int moviePos = mSharedPref.getInt("MoviePosition", DEFAULT_POSITION);
+                            if (savedMovieId == moviePos)
+                                mScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
                         }
                     });
 
@@ -275,6 +277,7 @@ public class DetailActivity extends AppCompatActivity {
 
     /**
      * Populates the CAST list on the screen*
+     *
      * @param castAr The array with the reviews
      */
 
@@ -388,6 +391,7 @@ public class DetailActivity extends AppCompatActivity {
 
     /**
      * likeMovie insert the record with "movie" to mDb
+     *
      * @param movie -  film
      **/
     private void likeMovie(Movie movie) {
@@ -399,19 +403,17 @@ public class DetailActivity extends AppCompatActivity {
         cv.put(COLUMN_POSTER_PATH, movie.getPosterPath());
         cv.put(COLUMN_RELEASE_DATE, movie.getReleaseDate());
         cv.put(COLUMN_FILM_ID, movie.getId());
-        //Uri newUri =
         getContentResolver().insert(LikedMoviesProvider.LIKE_MOVIE_URI, cv);
     }
 
     /**
      * unLikeMovie deletes the record with "movie" from mDb
+     *
      * @param movie -  film
      **/
     private void unLikeMovie(Movie movie) {
-        Log.i(LOG_TAG, "UNLikeMovie: " + movie.getEnglishTitle());
         movie.unLike();
-        //long ret =
-                getContentResolver().delete(
+        getContentResolver().delete(
                 LikedMoviesProvider.UNLIKE_MOVIE_URI.buildUpon().appendPath(String.valueOf(movie.getId())).build(),
                 null, null);
         movieList.remove(movie);
@@ -442,19 +444,12 @@ public class DetailActivity extends AppCompatActivity {
         outState.putIntArray("ARTICLE_SCROLL_POSITION",
                 new int[]{mScrollView.getScrollX(), mScrollView.getScrollY()});
         outState.putInt("MOVIE_ID", moviePosition);
-
-        Log.i(LOG_TAG, "Saving moviePosition=" + moviePosition);
-
     }
 
     //    Then restore the position in the onRestoreInstanceState method. We can't scroll right now because the ScrollView is not ready yet:
     // Scroll view is populated via AsyncTask.
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         savedMovieId = savedInstanceState.getInt("MOVIE_ID");
-//        int height = getApplicationContext().getResources().getDisplayMetrics().heightPixels;
-//        int width = getApplicationContext().getResources().getDisplayMetrics().widthPixels;
-//        Log.i(LOG_TAG, "onRestoreInstanceState current moviePosition=" + moviePosition);
-//        Log.i(LOG_TAG, "onRestoreInstanceState savedMovieId=" + savedMovieId);
         super.onRestoreInstanceState(savedInstanceState);
         final int[] position = savedInstanceState.getIntArray("ARTICLE_SCROLL_POSITION");
         if (moviePosition == savedMovieId) {

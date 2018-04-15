@@ -18,11 +18,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 import android.widget.Toast;
+
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.utils.EndlessRecyclerViewScrollListener;
 import com.amargodigits.movies.utils.MovieAdapter;
 import com.amargodigits.movies.utils.NetworkUtils.LoadDataTask;
+
 import java.util.ArrayList;
+
 import static com.amargodigits.movies.DetailActivity.mContext;
 import static com.amargodigits.movies.utils.MovieAdapter.gridColumnsNumber;
 import static com.amargodigits.movies.utils.NetworkUtils.isOnline;
@@ -32,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     public static ArrayList<Movie> movieList = new ArrayList<>();
     public static RecyclerView mRecyclerView;
     public static GridLayoutManager mLayoutManager;
-    public static int positionIndex=0;
+    public static int positionIndex = 0;
     public String sortOrder;
     public static SharedPreferences mSharedPref, mSp;
     static MovieAdapter mAdapter;
@@ -105,24 +108,20 @@ public class MainActivity extends AppCompatActivity {
             mAdapter.notifyItemInserted(mAdapter.getItemCount() + 3);
             mAdapter.notifyItemInserted(mAdapter.getItemCount() + 4);
         }
-
         ViewTreeObserver vto = mRecyclerView.getViewTreeObserver();
-        vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                if(positionIndex!= 0)
+                if (positionIndex != 0)
                     mRecyclerView.post(new Runnable() {
                         @Override
                         public void run() {
-                            mLayoutManager.scrollToPositionWithOffset(positionIndex,0);
+                            mLayoutManager.scrollToPositionWithOffset(positionIndex, 0);
                         }
                     });
-
             }
         });
-
-
     }
 
     // Append the next page of data into the adapter
@@ -220,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(this, "Network connection required", Toast.LENGTH_LONG).show();
                 }
-
                 return true;
             }
             case R.id.sort_toprated: {
@@ -274,12 +272,11 @@ public class MainActivity extends AppCompatActivity {
         outState.putInt("GRID_SCROLL_POSITION", positionIndex);
     }
 
-    //    Then restore the position in the onRestoreInstanceState method. Note that we need to post a Runnable to the ScrollView to get this to work:
-
+    //    Then restore the position in the onRestoreInstanceState method.
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         positionIndex = savedInstanceState.getInt("GRID_SCROLL_POSITION");
-        mLayoutManager.scrollToPositionWithOffset(positionIndex,0);
+        mLayoutManager.scrollToPositionWithOffset(positionIndex, 0);
     }
 
 }

@@ -21,7 +21,6 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version
     private static final int DATABASE_VERSION = 1;
 
-
     public MovieDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -47,8 +46,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     /**
      * Fills in the movieList[] array, and returns the length of the array
      */
-    public static void makeMovieArrayFromSQLite(SQLiteDatabase sqLiteDatabase)
-            {
+    public static void makeMovieArrayFromSQLite(SQLiteDatabase sqLiteDatabase) {
 // This projection  specifies which columns from the database
 // we will actually use in this query.
         String[] projection = {
@@ -62,26 +60,26 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         };
 
         String sortOrder = MovieEntry.COLUMN_RELEASE_DATE + " DESC";
-                int i=0;
-                try (Cursor cursor = sqLiteDatabase.query(MovieEntry.TABLE_NAME, projection, null, null, null, null, sortOrder)) {
-                    while (cursor.moveToNext()) {
+        int i = 0;
+        try (Cursor cursor = sqLiteDatabase.query(MovieEntry.TABLE_NAME, projection, null, null, null, null, sortOrder)) {
+            while (cursor.moveToNext()) {
 
-                        try {
-                            movieList.add(new Movie(
-                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)),
-                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ENGLISH_TITLE)),
-                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_OVERVIEW)),
-                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_POSTER_PATH)),
-                                            cursor.getFloat(cursor.getColumnIndex(MovieEntry.COLUMN_POPULARITY)),
-                                            cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_RELEASE_DATE)),
-                                            cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FILM_ID))
-                                    )
-                            );
-                        } catch (Exception e) {
-                            Log.i(LOG_TAG, "makeMovieArrayFromSQLite Exception: " + e.toString());
-                        }
-                        i++;
-                    }
+                try {
+                    movieList.add(new Movie(
+                                    cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE)),
+                                    cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ENGLISH_TITLE)),
+                                    cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_OVERVIEW)),
+                                    cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_POSTER_PATH)),
+                                    cursor.getFloat(cursor.getColumnIndex(MovieEntry.COLUMN_POPULARITY)),
+                                    cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_RELEASE_DATE)),
+                                    cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FILM_ID))
+                            )
+                    );
+                } catch (Exception e) {
+                    Log.i(LOG_TAG, "makeMovieArrayFromSQLite Exception: " + e.toString());
                 }
+                i++;
+            }
+        }
     }
 }

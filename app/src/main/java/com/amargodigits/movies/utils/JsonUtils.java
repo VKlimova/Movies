@@ -3,7 +3,6 @@ package com.amargodigits.movies.utils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import com.amargodigits.movies.model.Cast;
 import com.amargodigits.movies.model.Movie;
 import com.amargodigits.movies.model.Review;
@@ -22,12 +21,6 @@ class JsonUtils {
             throws JSONException {
         JSONObject rawJson = new JSONObject(rawJsonStr);
         JSONArray moviesJsonArr = rawJson.getJSONArray("results");
-//        int startIndex;
-//        if (pageNum.equals("1")) {
-//            startIndex = 0;
-//        } else {
-//            startIndex = movieList.size();
-//        }
         for (int i = 0; (i < moviesJsonArr.length()); i++) {
             /* Get the JSON object representing the movie */
             JSONObject movieObj = moviesJsonArr.getJSONObject(i);
@@ -56,7 +49,7 @@ class JsonUtils {
         JSONArray castJsonArr = rawJson.getJSONArray("cast");
         int castNum;
 
-        // We don't want the entire list of 40+ cast :)
+        // We don't want the entire list of 40+ cast
         if (castJsonArr.length()<8){
             castNum=castJsonArr.length();
         } else {
